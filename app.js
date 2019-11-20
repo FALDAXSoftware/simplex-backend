@@ -4,9 +4,7 @@ var path = require('path');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-var mailer = require('express-mailer');
 var dotenv = require('dotenv');
-var fileUpload = require('express-fileupload');
 var app = express();
 var https = require('https');
 var http = require('http');
@@ -19,6 +17,7 @@ app.use(session({
   secret: require("./config/secret")()
 }));
 
+<<<<<<< HEAD
 // Config Router Grouping
 express.application.prefix = express.Router.prefix = function (path, configure) {
   var router = express.Router();
@@ -27,6 +26,9 @@ express.application.prefix = express.Router.prefix = function (path, configure) 
   return router;
 };
 // Ends
+=======
+
+>>>>>>> b5952988497c63ef2c72442bc3875afbe1dfb26a
 app.use(cors())
 
 dotenv.load(); // Configuration load (ENV file)
@@ -59,22 +61,7 @@ app.use(bodyParser.urlencoded({
   limit: "2.7mb",
   extended: false
 }));
-app.use(fileUpload({
-  limits: {
-    fileSize: 10 * 1024 * 1024
-  }
-}));
 
-// SMTP setting
-mailer.extend(app, {
-  from: process.env.MAIL_FROM_NAME + " <" + process.env.MAIL_FROM_EMAIL + ">",
-  host: process.env.MAIL_HOST, // hostname
-  port: process.env.MAIL_PORT, // port forSMTP
-  auth: {
-    user: process.env.MAIL_USERNAME,
-    pass: process.env.MAIL_PASSWORD
-  }
-});
 
 // Make Images public
 app.use(express.static('public'));
@@ -132,6 +119,16 @@ var server = http.createServer(app);
 
 //Routes
 app.use('/', require('./routes'));
+app.use(function (req, res, next) {
+  var err = new Error('Resource Not Found');
+  err.status = 404;
+  var resources = {};
+  res.status( 404 );
+  resources.status = err.status;
+  resources.message = err.message;
+  return res.json(resources);
+});
+
 
 // process.on('uncaughtException', function (error) {}); // Ignore error
 

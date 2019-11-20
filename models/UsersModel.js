@@ -6,79 +6,72 @@ var { AppModel } = require('./AppModel');
 // For hidden any field from the select query
 const visibilityPlugin = require('objection-visibility');
 // Import the plugin for check unique email address.
-const unique = require('objection-unique')({
-  	fields: [
-	  'email', 
-	  'contact_number'
-	],
-  	identifiers: ['id']
-});
 
 // User Model.
-class UsersModel extends visibilityPlugin(unique(AppModel)) {
-// class User extends visibilityPlugin(AppModel) {
+class UsersModel extends AppModel {
+	// class User extends visibilityPlugin(AppModel) {
 
 	constructor() {
 		super();
 	}
 
 	static get hidden() {
-		return ['password'];
+		// return ['password'];
 	}
 
 	static get tableName() {
-    	return 'users';
+		return 'users';
 	}
-	
-  	/** Each model must have a column (or a set of columns) that uniquely
-  	*   identifies the rows. The column(s) can be specified using the `idColumn`
-  	*   property. `idColumn` returns `id` by default and doesn't need to be
-  	*   specified unless the model's primary key is something else.
-  	*/
-  	static get idColumn() {
-    	return 'id';
+
+	/** Each model must have a column (or a set of columns) that uniquely
+	*   identifies the rows. The column(s) can be specified using the `idColumn`
+	*   property. `idColumn` returns `id` by default and doesn't need to be
+	*   specified unless the model's primary key is something else.
+	*/
+	static get idColumn() {
+		return 'id';
 	}
 
 	// Optional JSON schema. This is not the database schema!
-  // No tables or columns are generated based on this. This is only
-  // used for input validation. Whenever a model instance is created
-  // either explicitly or implicitly it is checked against this schema.
-	static get jsonSchema () {
-    return {
-      type: 'object',
-      properties: {
-        email: {
-          type: 'string',
-          index: {unique: true},
+	// No tables or columns are generated based on this. This is only
+	// used for input validation. Whenever a model instance is created
+	// either explicitly or implicitly it is checked against this schema.
+	static get jsonSchema() {
+		return {
+			type: 'object',
+			properties: {
+				email: {
+					type: 'string',
+					index: { unique: true },
 				},
-				client_key:{
+				client_key: {
 					type: 'string',
 					default: ""
 				},
-				device_token:{
+				device_token: {
 					type: 'string',
 					default: ""
 				},
-				forgot_token:{
+				forgot_token: {
 					type: 'string',
 					default: ""
 				},
-				device_type:{
+				device_type: {
 					type: 'string',
 					default: ""
 				},
-				ip:{
+				ip: {
 					type: 'string',
 					default: ""
 				},
-				deleted: { 
+				deleted: {
 					type: 'boolean',
 					default: false
-				},   
-      }
-    };
-  }
-	  
+				},
+			}
+		};
+	}
+
 	static get virtualAttributes() {
 
 		return [
@@ -91,61 +84,75 @@ class UsersModel extends visibilityPlugin(unique(AppModel)) {
 		const Roles = require('./RolesModel');
 		const UserDetails = require('./UserdetailsModel');
 		return {
-		  roles: {
-		    relation: AppModel.BelongsToOneRelation,
-		    modelClass: Roles,
-		    join: {
-		      from: 'users.role_id',
-		      to: 'roles.id'
-		    }
+			roles: {
+				relation: AppModel.BelongsToOneRelation,
+				modelClass: Roles,
+				join: {
+					from: 'users.role_id',
+					to: 'roles.id'
+				}
 			},
 			user_details: {
-		    relation: AppModel.BelongsToOneRelation,
-		    modelClass: UserDetails,
-		    join: {
-		      from: 'user_details.user_id',
-		      to: 'users.id'
-		    }
-		  }
+				relation: AppModel.BelongsToOneRelation,
+				modelClass: UserDetails,
+				join: {
+					from: 'user_details.user_id',
+					to: 'users.id'
+				}
+			}
 		};
 	}
 
 
 	// Get User Data
-	static async getUserdata( filter, select="" ){
-		if( select != "" ) {
+	static async getUserdata(filter, select = "") {
+		if (select != "") {
 			select = select;
-		}else{
-			select= "*";
+		} else {
+			select = "*";
 		}
-		var getData = await UsersModel			
+		var getData = await UsersModel
 			.query()
-			.select( select )
-			.eager('[roles, user_details]')
+			.select(select)
 			.where(filter)
-			.whereNotDeleted()
 			.first();
 
 		return getData;
 	}
 
 	// Update User data based on criteria
-	static async update( filter, updateData ){
-		var getData = await UsersModel			
+	static async update(filter, updateData) {
+		var getData = await UsersModel
 			.query()
 			.where(filter)
-			.whereNotDeleted()
 			.first();
 
-		if( getData != undefined ){
+		if (getData != undefined) {
 			var updateData = await getData
-			.$query()
-			.patch( updateData );	
+				.$query()
+				.patch(updateData);
 			return 1;
-		}else{
+		} else {
 			return 0;
 		}
-		
+
+	}
+
+
+	// Get User Data
+	static async getSingleData(filter, select = "") {
+		if (select != "") {
+			select = select;
+		} else {
+			select = "*";
+		}
+		var getData = await UsersModel
+			.query()
+			.select(select)
+			.where(filter)
+			.first();
+
+		return getData;
 	}
 
 }

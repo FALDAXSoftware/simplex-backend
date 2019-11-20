@@ -2,14 +2,15 @@
  * Common APP Model to define Common ORM
  * 
  */
-var Model = require('../../config/database');
+var Model = require('../config/database');
 // Import the plugin for soft delete recored
-const softDelete = require('objection-soft-delete');
+// const softDelete = require('objection-soft-delete');
 // Plugin for encript and descript data
 var Cryptr = require('cryptr'),
-	cryptr = new Cryptr(require('../../config/secret')());
+	cryptr = new Cryptr(require('../config/secret')());
 
-class AppModel extends softDelete({	columnName: 'is_deleted'})(Model) {
+// class AppModel extends softDelete({	columnName: 'is_deleted'})(Model) {
+class AppModel extends Model {
 	constructor() {
 		super();
 	}
@@ -18,8 +19,8 @@ class AppModel extends softDelete({	columnName: 'is_deleted'})(Model) {
 
 		await super.$beforeInsert(queryContext);
 
-		this.dt_created = new Date().toISOString();
-		this.dt_updated = new Date().toISOString();
+		this.created_at = new Date().toISOString();
+		this.updated_at = new Date().toISOString();
 
 	}
 
@@ -27,7 +28,7 @@ class AppModel extends softDelete({	columnName: 'is_deleted'})(Model) {
 	async $beforeUpdate(queryContext) {
 
 		await super.$beforeUpdate(queryContext);
-		this.dt_updated = new Date().toISOString();
+		this.updated_at = new Date().toISOString();
 
 	}
 
