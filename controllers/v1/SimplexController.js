@@ -20,11 +20,11 @@ var {AppController} = require('./AppController');
 var UsersModel = require('../../models/UsersModel');
 var AdminSettings = require('../../models/AdminSetting');
 var Coins = require('../../models/Coins');
+var SimplexTradeHistory = require('../../models/SimplexTradeHistory');
 var Wallet = require('../../models/Wallet');
 var requestIp = require('request-ip');
 const uuidv1 = require('uuid/v1');
 var request = require('request')
-var logger = require("./logger")
 const iplocation = require("iplocation").default;
 
 /**
@@ -45,31 +45,64 @@ class SimplexController extends AppController {
     return value;
   }
 
-  async getQouteDetails(data) {
+  async getPartnerDataInfo(data) {
     try {
-      var key = await AdminSettings
+      var keyValue = await AdminSettings
         .query()
         .first()
         .select()
         .where('deleted_at', null)
         .andWhere('slug', 'access_token')
         .orderBy('id', 'DESC')
-
-      var key = process.env.key;
-
-      var iv = process.env.iv;
+      var key = [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ];
+      var iv = [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ]
 
       // When ready to decrypt the hex string, convert it back to bytes
       var encryptedBytes = aesjs
         .utils
         .hex
-        .toBytes(key.value);
+        .toBytes(keyValue.value);
 
       // The output feedback mode of operation maintains internal state, so to decrypt
       // a new instance must be instantiated.
       var aesOfb = new aesjs
         .ModeOfOperation
         .ofb(key, iv);
+
       var decryptedBytes = aesOfb.decrypt(encryptedBytes);
 
       // Convert our bytes back into text
@@ -78,24 +111,113 @@ class SimplexController extends AppController {
         .utf8
         .fromBytes(decryptedBytes);
 
-      await request.post(process.env.SIMPLEX_URL + 'quote', {
-        headers: {
-          'Authorization': 'ApiKey ' + decryptedText,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "digital_currency": data.digital_currency,
-          "fiat_currency": data.fiat_currency,
-          "requested_currency": data.requested_currency,
-          "requested_amount": data.requested_amount,
-          "end_user_id": (data.end_user_id).toString(),
-          "wallet_id": sails.config.local.WALLET_ID,
-          "client_ip": (data.client_ip)
-        })
-      }, function (err, res, body) {
-        res = res.toJSON();
-        return (JSON.parse(res.body));
-      });
+      var promise = await new Promise(function (resolve, reject) {
+        request
+          .post(process.env.SIMPLEX_URL + 'payments/partner/data', {
+            headers: {
+              'Authorization': 'ApiKey ' + decryptedText,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          }, function (err, res, body) {
+            resolve(JSON.parse(res.body));
+          });
+      })
+      return promise;
+    } catch (err) {
+      console.log("Error in rising falling data ::::: ", err);
+    }
+  }
+
+  async getQouteDetails(data) {
+    try {
+      var keyValue = await AdminSettings
+        .query()
+        .first()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('slug', 'access_token')
+        .orderBy('id', 'DESC')
+
+      var key = [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ];
+      var iv = [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ]
+
+      // When ready to decrypt the hex string, convert it back to bytes
+      var encryptedBytes = aesjs
+        .utils
+        .hex
+        .toBytes(keyValue.value);
+
+      // The output feedback mode of operation maintains internal state, so to decrypt
+      // a new instance must be instantiated.
+      var aesOfb = new aesjs
+        .ModeOfOperation
+        .ofb(key, iv);
+
+      var decryptedBytes = aesOfb.decrypt(encryptedBytes);
+
+      // Convert our bytes back into text
+      var decryptedText = aesjs
+        .utils
+        .utf8
+        .fromBytes(decryptedBytes);
+
+      var promise = await new Promise(async function (resolve, reject) {
+        await request
+          .post(process.env.SIMPLEX_URL + 'quote', {
+            headers: {
+              'Authorization': 'ApiKey ' + decryptedText,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              "digital_currency": data.digital_currency,
+              "fiat_currency": data.fiat_currency,
+              "requested_currency": data.requested_currency,
+              "requested_amount": data.requested_amount,
+              "end_user_id": (data.end_user_id).toString(),
+              "wallet_id": process.env.WALLET_ID,
+              "client_ip": (data.client_ip)
+            })
+          }, async function (err, res, body) {
+            res = await res.toJSON();
+            resolve(JSON.parse(res.body));
+          });
+      })
+      return promise;
     } catch (err) {
       console.log("Error in rising falling data ::::: ", err);
     }
@@ -106,9 +228,9 @@ class SimplexController extends AppController {
     try {
       var data = req.body;
       var ip = requestIp.getClientIp(req);
-      var user_id = req.session.user_id;
+      var user_id = 1545;
       data.client_ip = ip;
-      data.end_user_id = user_id;
+      data.end_user_id = 1545;
 
       var panic_button_details = await AdminSettings
         .query()
@@ -123,9 +245,13 @@ class SimplexController extends AppController {
         // Checking whether user can trade in the area selected in the KYC var
         // geo_fencing_data = await sails   .helpers   .userTradeChecking(user_id); if
         // (geo_fencing_data.response == true) {
-        var qouteDetail = await this.getQouteDetails(data);
+        var qouteDetail = await module
+          .exports
+          .getQouteDetails(data);
+
         var coinDetails = await Coins
           .query()
+          .first()
           .select()
           .where('deleted_at', null)
           .andWhere('coin', data.digital_currency)
@@ -133,13 +259,14 @@ class SimplexController extends AppController {
           .orderBy('id', 'DESC');
 
         var createMsg = '';
-        var walletDetails = await Wallet.findOne({
-          where: {
-            deleted_at: null,
-            user_id: user_id,
-            coin_id: coinDetails.id
-          }
-        })
+        var walletDetails = await Wallet
+          .query()
+          .first()
+          .select()
+          .where('deleted_at', null)
+          .andWhere('user_id', user_id)
+          .andWhere('coin_id', coinDetails.id)
+          .orderBy('id', 'DESC');
 
         if (walletDetails == undefined) {
           createMsg = 'Please create you address to continue'
@@ -148,7 +275,7 @@ class SimplexController extends AppController {
           .status(200)
           .json({
             "status": 200,
-            "message": sails.__("qoute details success"),
+            "message": ("qoute details success"),
             "data": qouteDetail,
             walletDetails,
             createMsg,
@@ -160,21 +287,199 @@ class SimplexController extends AppController {
       } else {
         return res
           .status(500)
-          .json({
-            "status": 500,
-            "message": sails.__("panic button enabled")
-          })
+          .json({"status": 500, "message": ("panic button enabled")})
       }
 
     } catch (err) {
       console.log(err);
-      await logger.error(err.message)
-      return res.json({
-        status: 500,
-        "err": sails.__("Something Wrong")
-      });
+      return res.json({status: 500, "err": ("Something Wrong")});
     }
   }
+
+  async getSimplexCoinList(req, res) {
+    try {
+      var coinList = await Coins
+        .query()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('is_active', true)
+        .andWhere('is_simplex_supported', true)
+        .orderBy('id', 'DESC');
+
+      var fiatValue = {};
+
+      fiatValue = [
+        {
+          id: 1,
+          coin: "USD",
+          coin_icon: "https://s3.us-east-2.amazonaws.com/production-static-asset/coin/usd.png"
+        }, {
+          id: 2,
+          coin: "EUR",
+          coin_icon: "https://s3.us-east-2.amazonaws.com/production-static-asset/coin/euro.png"
+        }
+      ]
+
+      var object = {
+        coinList,
+        fiat: fiatValue
+      }
+
+      return res
+        .status(200)
+        .json({"status": 200, "message": ("coin list retrieve success"), object})
+    } catch (error) {
+      console.log(error);
+      return res.json({status: 500, "err": ("Something Wrong")});
+    }
+  }
+
+  // Get partner data value on the basis of the information passed by the user
+  async getPartnerData(req, res) {
+    try {
+
+      var data = req.body;
+      var user_id = 1545;
+      var ip = requestIp.getClientIp(req);
+      // var user_id = 1712;
+      ip = '27.121.103.6'
+
+      var payment_id = uuidv1();
+      var order_id = uuidv1();
+
+      var main_details = {};
+      var account_details = {};
+      account_details.app_provider_id = 'faldax';
+      account_details.app_version_id = '1.3.1';
+      account_details.app_end_user_id = JSON.stringify(user_id);
+      var dataValue = await module
+        .exports
+        .getLatitude(ip);
+      var latValue = dataValue.latitude + ',' + dataValue.longitude;
+
+      var signupDetails = {
+        "ip": ip, // Write req.ip here
+        "location": latValue, // Here Langtitude and Longtitude location
+        "timestamp": new Date()
+      }
+
+      account_details.signup_login = signupDetails;
+
+      var pay_details = {};
+
+      var transaction_details = {};
+
+      pay_details.quote_id = data.quote_id;
+      pay_details.payment_id = payment_id;
+      pay_details.order_id = order_id;
+
+      var fiat_details = {
+        "currency": data.fiat_currency,
+        "amount": parseFloat(data.fiat_amount)
+      }
+
+      var requested_details = {
+        "currency": data.digital_currency,
+        "amount": parseFloat(data.total_amount)
+      }
+
+      var destination_wallet = {
+        "currency": data.digital_currency,
+        "address": data.address
+      };
+
+      pay_details.fiat_total_amount = fiat_details;
+      pay_details.requested_digital_amount = requested_details;
+      pay_details.destination_wallet = destination_wallet;
+      pay_details.original_http_ref_url = "https://preprod-trade.faldax.com/simplex";
+
+      transaction_details.payment_details = pay_details;
+
+      main_details.account_details = account_details;
+      main_details.transaction_details = transaction_details;
+
+      // Checking for panic button details
+      var panic_button_details = await AdminSettings
+        .query()
+        .first()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('slug', 'panic_status')
+        .orderBy('id', 'DESC')
+
+      if (panic_button_details.value == false || panic_button_details.value == "false") {
+        // Checking whether user can trade in the area selected in the KYC var
+        // geo_fencing_data = await sails   .helpers   .userTradeChecking(user_id); if
+        // (geo_fencing_data.response == true) {
+
+        var dataUpdate = await module
+          .exports
+          .getPartnerDataInfo(main_details);
+        if (dataUpdate.is_kyc_update_required == true) {
+          var dataObject = {
+            "version": 1,
+            "partner": "faldax",
+            "payment_flow_type": "wallet",
+            "return_url_success": process.env.SUCCESS_URL,
+            "return_url_fail": process.env.FAIL_URL,
+            "payment_id": payment_id,
+            "quote_id": data.quote_id,
+            "user_id": user_id,
+            "destination_wallet[address]": data.address,
+            "destination_wallet[currency]": data.currency,
+            "fiat_total_amount[amount]": parseFloat(data.fiat_amount),
+            "fiat_total_amount[currency]": data.fiat_currency,
+            "digital_total_amount[amount]": parseFloat(data.total_amount),
+            "digital_total_amount[currency]": data.currency,
+            "action": process.env.ACTION_URL
+          }
+          var now = new Date();
+
+          let tradeHistory = await SimplexTradeHistory
+            .query()
+            .insert({
+              'payment_id': payment_id,
+              "quote_id": data.quote_id,
+              'currency': data.currency,
+              "settle_currency": data.fiat_currency,
+              "quantity": parseFloat(data.fiat_amount),
+              "user_id": user_id,
+              "symbol": data.currency + '-' + data.fiat_currency,
+              "side": 'Buy',
+              "created_at": now,
+              "updated_at": now,
+              "fill_price": parseFloat(data.total_amount),
+              "price": 0,
+              "simplex_payment_status": 1,
+              "trade_type": 3,
+              "order_status": "filled",
+              "order_type": "Market",
+              "address": data.address,
+              "is_processed": false
+            });
+          return res
+            .status(200)
+            .json({"status": 200, "message": ("payment details success"), "data": dataObject})
+        } else {
+          return res
+            .status(400)
+            .json({"status": 400, "message": ("payment fail")})
+        }
+
+        // } else {   // Whatever the response of user trade checking   res.json({
+        // "status": 200,     "message": sails.__(geo_fencing_data.msg)   }); }
+      } else {
+        return res
+          .status(500)
+          .json({"status": 500, "message": ("panic button enabled")})
+      }
+
+    } catch (err) {
+      console.log(err);
+      return res.json({status: 500, "err": ("Something Wrong")});
+    }
+  }
+
 }
 
 module.exports = new SimplexController();
