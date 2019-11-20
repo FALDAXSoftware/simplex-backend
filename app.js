@@ -14,17 +14,17 @@ var i18n = require("i18n");
 const Validator = require('node-input-validator');
 var session = require('express-session')
 app.use(session({
-  resave:false,
-  saveUninitialized:false,
+  resave: false,
+  saveUninitialized: false,
   secret: require("./config/secret")()
 }));
 
 // Config Router Grouping
 express.application.prefix = express.Router.prefix = function (path, configure) {
-    var router = express.Router();
-    this.use(path, router);
-    configure(router);
-    return router;
+  var router = express.Router();
+  this.use(path, router);
+  configure(router);
+  return router;
 };
 // Ends
 app.use(cors())
@@ -32,7 +32,7 @@ app.use(cors())
 dotenv.load(); // Configuration load (ENV file)
 // Configure Locales
 i18n.configure({
-  locales:['en', 'de'],
+  locales: ['en', 'de'],
   directory: __dirname + '/locales',
   register: global
 });
@@ -90,8 +90,8 @@ app.all('/*', function (req, res, next) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   // Set custom headers for CORS
   res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key,Client-Key');
-  if( req.headers.language ){ // If header send language, then set to that language
-    i18n.setLocale(req.headers.language ); 
+  if (req.headers.language) { // If header send language, then set to that language
+    i18n.setLocale(req.headers.language);
   }
   if (req.method == 'OPTIONS') {
     res
@@ -103,15 +103,15 @@ app.all('/*', function (req, res, next) {
 });
 
 Validator.extend('extention', async function (field, value) {
-  let extentionsArray = ["image/jpeg","image/png","application/pdf"];  
-  if( extentionsArray.includes(value) ){
+  let extentionsArray = ["image/jpeg", "image/png", "application/pdf"];
+  if (extentionsArray.includes(value)) {
     return true
   }
   return false;
 
 });
 Validator.messages({
-  extention : "Invalid file. Only .jpg, .png, .pdf allowed."
+  extention: "Invalid file. Only .jpg, .png, .pdf allowed."
 });
 
 
