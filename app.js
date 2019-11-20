@@ -17,18 +17,6 @@ app.use(session({
   secret: require("./config/secret")()
 }));
 
-<<<<<<< HEAD
-// Config Router Grouping
-express.application.prefix = express.Router.prefix = function (path, configure) {
-  var router = express.Router();
-  this.use(path, router);
-  configure(router);
-  return router;
-};
-// Ends
-=======
-
->>>>>>> b5952988497c63ef2c72442bc3875afbe1dfb26a
 app.use(cors())
 
 dotenv.load(); // Configuration load (ENV file)
