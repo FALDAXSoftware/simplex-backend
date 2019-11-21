@@ -202,11 +202,11 @@ class SimplexController extends AppController {
   async getUserQouteDetails(req, res) {
     try {
       var data = req.body;
-      var ip = requestIp.getClientIp(req);
-      var user_id = 1545;
-      data.client_ip = ip;
-      data.end_user_id = 1545;
-
+      // var ip = requestIp.getClientIp(req);
+      // var user_id = 1545;
+      // data.client_ip = ip;
+      // data.end_user_id = 1545;
+      let user_id = data.end_user_id;
       var panic_button_details = await AdminSettings
         .query()
         .first()
@@ -314,65 +314,9 @@ class SimplexController extends AppController {
     try {
 
       var data = req.body;
-      var user_id = 1545;
-      var ip = requestIp.getClientIp(req);
-      // var user_id = 1712;
-      ip = '27.121.103.6'
-
-      var payment_id = uuidv1();
-      var order_id = uuidv1();
-
-      var main_details = {};
-      var account_details = {};
-      account_details.app_provider_id = 'faldax';
-      account_details.app_version_id = '1.3.1';
-      account_details.app_end_user_id = JSON.stringify(user_id);
-      var dataValue = await module
-        .exports
-        .getLatitude(ip);
-      var latValue = dataValue.latitude + ',' + dataValue.longitude;
-
-      var signupDetails = {
-        "ip": ip, // Write req.ip here
-        "location": latValue, // Here Langtitude and Longtitude location
-        "timestamp": new Date()
-      }
-
-      account_details.signup_login = signupDetails;
-
-      var pay_details = {};
-
-      var transaction_details = {};
-
-      pay_details.quote_id = data.quote_id;
-      pay_details.payment_id = payment_id;
-      pay_details.order_id = order_id;
-
-      var fiat_details = {
-        "currency": data.fiat_currency,
-        "amount": parseFloat(data.fiat_amount)
-      }
-
-      var requested_details = {
-        "currency": data.digital_currency,
-        "amount": parseFloat(data.total_amount)
-      }
-
-      var destination_wallet = {
-        "currency": data.digital_currency,
-        "address": data.address
-      };
-
-      pay_details.fiat_total_amount = fiat_details;
-      pay_details.requested_digital_amount = requested_details;
-      pay_details.destination_wallet = destination_wallet;
-      pay_details.original_http_ref_url = "https://preprod-trade.faldax.com/simplex";
-
-      transaction_details.payment_details = pay_details;
-
-      main_details.account_details = account_details;
-      main_details.transaction_details = transaction_details;
-
+      var user_id = data.main_details.account_details.app_end_user_id;
+      let main_details = data.main_details;
+      let payment_id = main_details.transaction_details.payment_details.payment_id;
       // Checking for panic button details
       var panic_button_details = await AdminSettings
         .query()

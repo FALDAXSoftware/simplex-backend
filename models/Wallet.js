@@ -1,4 +1,4 @@
-var {AppModel} = require('./appModel');
+var {AppModel} = require('./AppModel');
 // For hidden any field from the select query
 var Cryptr = require('cryptr'),
   cryptr = new Cryptr(require('../config/secret')());
