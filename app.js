@@ -114,3 +114,4 @@ app.set('port', process.env.PORT);
 server.listen(app.get('port'), function () {
   console.log(process.env.PROJECT_NAME + " Application is running on " + process.env.PORT + " port....");
 });
+var cronjobFile = require("./services/cronJobs");
