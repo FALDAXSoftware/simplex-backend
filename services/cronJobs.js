@@ -1,12 +1,10 @@
 /* Used to store CronJobs  */
 var cron = require('node-cron');
+var simplexController = require('../controllers/v1/SimplexController');
 
-var cronFunction = async()=>{
-    // code for cron
-}
 // On Every Minute
-cron.schedule('* * * * *', (req, res, next) => {
+cron.schedule('* * * * *',async (req, res, next) => {
     console.log("Started cron....");
-    cronFunction();
+    await simplexController.checkPaymentStatus();
     
 });

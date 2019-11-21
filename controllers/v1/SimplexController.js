@@ -439,89 +439,76 @@ class SimplexController extends AppController {
               .andWhere('is_active', true)
               .andWhere('coin', tradeData[i].currency)
               .orderBy('id', 'DESC');
+
             var walletData = await Wallet
               .query()
               .first()
               .select()
               .where('coin_id', coinData.id)
               .andWhere('deleted_at', null)
-              .andWhere()
-              .findOne({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
+              .andWhere('receive_address', tradeData[i].address)
+              .andWhere('user_id',tradeData[i].user_id)
+              .orderBy('id','DESC');
+
             if (walletData != undefined) {
               var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
               var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
-              var walletUpdate = await Wallet
-                .update({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
-                .set({balance: balanceData, placed_balance: placedBalanceData});
+              var walletUpdate = await walletData
+                .$query()
+                .patch({balance: balanceData, placed_balance: placedBalanceData});
 
-              var walletUpdated = await Wallet.findOne({
-                where: {
-                  deleted_at: null,
-                  coin_id: coinData.id,
-                  user_id: 36,
-                  is_admin: true
-                }
-              })
+              var walletUpdated = await Wallet
+              .query()
+              .first()
+              .select()
+              .where('coin_id', coinData.id)
+              .andWhere('deleted_at', null)
+              .andWhere('is_admin', true)
+              .andWhere('user_id',36)
+              .orderBy('id','DESC');
+
               if (walletUpdated != undefined) {
                 var balance = parseFloat(walletUpdated.balance) + (tradeData[i].fill_price);
                 var placed_balance = parseFloat(walletUpdated.placed_balance) + (tradeData[i].fill_price);
-                var walletUpdated = await Wallet
-                  .update({deleted_at: null, coin_id: coinData.id, user_id: 36, is_admin: true})
-                  .set({balance: balance, placed_balance: placed_balance})
+                var walletUpdated = await walletUpdated
+                  .$query()
+                  .patch({balance: balance, placed_balance: placed_balance})
               }
             }
             if (tradeData[i].simplex_payment_status == 1) {
               var tradeHistoryData = await SimplexTradeHistory
-                .update({id: tradeData[i].id})
-                .set({simplex_payment_status: 2, is_processed: true})
-                .fetch();
-
-              console.log("Trade History Data >>>>>>>>>>>.", tradeHistoryData);
-
-              let referredData = await sails
-                .helpers
-                .tradding
-                .getRefferedAmount(tradeHistoryData, tradeHistoryData.user_id, tradeData[i].id);
-
-              console.log("Deleteing the event in if")
+                .query()
+                .select()
+                .first()
+                .where('id',tradeData[i].id)
+                .patch({simplex_payment_status: 2, is_processed: true});
 
               console.log(data.events[j].id);
-              await this.deleteEvent(data.events[j].event_id)
+              await module.exports.deleteEvent(data.events[j].event_id)
             }
           } else if (payment_data.id == tradeData[i].payment_id) {
             console.log("ELSE IF >>>>>>>>>>>>>")
             if (payment_data.status == "pending_simplexcc_approval") {
               console.log("IF ????????????")
               var tradeHistoryData = await SimplexTradeHistory
-                .update({id: tradeData[i].id})
-                .set({simplex_payment_status: 2, is_processed: true})
-                .fetch();
+              .query()
+              .select()
+              .first()
+              .where('id',tradeData[i].id)
+              .patch({simplex_payment_status: 2, is_processed: true});
 
               console.log("Deleteing the event in else", data.events[j].event_id)
 
-              await this.deleteEvent(data.events[j].event_id)
-
-              var referData = await Referral.findOne({
-                where: {
-                  deleted_at: null,
-                  txid: tradeData[i].id
-                }
-              })
-              console.log("Refer Data >>>>>>>>>", referData);
-
-              if (referData != undefined) {
-                let referredData = await sails
-                  .helpers
-                  .tradding
-                  .getRefferedAmount(tradeHistoryData, tradeHistoryData.user_id, tradeData[i].id);
-
-              }
+              await module.exports.deleteEvent(data.events[j].event_id)
             } else if (payment_data.status == "cancelled") {
               var tradeHistoryData = await SimplexTradeHistory
-                .update({id: tradeData[i].id})
-                .set({simplex_payment_status: 3, is_processed: true});
+              .query()
+              .select()
+              .first()
+              .where('id',tradeData[i].id)
+              .patch({simplex_payment_status: 3, is_processed: true});
               console.log("deleting thsi event further>>>>", data.events[j].event_id);
-              await this.deleteEvent(data.events[j].event_id)
+              await module.exports.deleteEvent(data.events[j].event_id)
             }
           }
         }
