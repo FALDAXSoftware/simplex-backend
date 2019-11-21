@@ -60,35 +60,35 @@ app.set('views', __dirname + '/views');
 // Set template engin for view files
 app.set('view engine', 'pug');
 
-app.all('/*', function (req, res, next) {
-  // CORS headers
-  res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  // Set custom headers for CORS
-  res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key,Client-Key');
-  if( req.headers.language ){ // If header send language, then set to that language
-    i18n.setLocale(req.headers.language ); 
-  }
-  if (req.method == 'OPTIONS') {
-    res
-      .status(200)
-      .end();
-  } else {
-    next();
-  }
-});
+// app.all('/*', function (req, res, next) {
+//   // CORS headers
+//   // res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
+//   // res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//   // Set custom headers for CORS
+//   // res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key,Client-Key');
+//   // if( req.headers.language ){ // If header send language, then set to that language
+//   //   i18n.setLocale(req.headers.language ); 
+//   // }
+//   // if (req.method == 'OPTIONS') {
+//   //   res
+//   //     .status(200)
+//   //     .end();
+//   // } else {
+//   //   next();
+//   // }
+// });
 
-Validator.extend('extention', async function (field, value) {
-  let extentionsArray = ["image/jpeg","image/png","application/pdf"];  
-  if( extentionsArray.includes(value) ){
-    return true
-  }
-  return false;
+// Validator.extend('extention', async function (field, value) {
+//   let extentionsArray = ["image/jpeg","image/png","application/pdf"];  
+//   if( extentionsArray.includes(value) ){
+//     return true
+//   }
+//   return false;
 
-});
-Validator.messages({
-  extention : "Invalid file. Only .jpg, .png, .pdf allowed."
-});
+// });
+// Validator.messages({
+//   extention : "Invalid file. Only .jpg, .png, .pdf allowed."
+// });
 
 
 var server = http.createServer(app);

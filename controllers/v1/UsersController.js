@@ -102,15 +102,15 @@ class UsersController extends AppController {
   async get(req, res) {
     try {
       var req_params = req.params;
-      let validator = new v(req_params, {
-        id: 'required|integer'
-      });
-      let matched = await validator.check();
-      if (!matched) {
-        for (var key in validator.errors) {
-          return Helper.jsonFormat(res, constants.BAD_REQUEST_CODE, validator.errors[key].message, []);
-        }
-      }
+      // let validator = new v(req_params, {
+      //   id: 'required|integer'
+      // });
+      // let matched = await validator.check();
+      // if (!matched) {
+      //   for (var key in validator.errors) {
+      //     return Helper.jsonFormat(res, constants.BAD_REQUEST_CODE, validator.errors[key].message, []);
+      //   }
+      // }
 
       var filter = {
         id: req_params.id
@@ -118,13 +118,18 @@ class UsersController extends AppController {
       var getData = await UsersModel.getSingleData(filter);
 
       if (getData != undefined) {
-        return Helper.jsonFormat(res, constants.SUCCESS_CODE, i18n.__("USER") + i18n.__("RECORD_FOUND"), getData);
+        // return getData;
+        // return res.send({status:constants.SUCCESS_CODE,data:getData});
+        res.sendStatus(200)
+        // return Helper.jsonFormat(res, constants.SUCCESS_CODE, i18n.__("USER") + i18n.__("RECORD_FOUND"), getData);
       } else {
-        return Helper.jsonFormat(res, constants.SUCCESS_CODE, i18n.__("USER") + i18n.__("NOT_FOUND"), []);
+        return {status:constants.SUCCESS_CODE,data:[]}
+        // return Helper.jsonFormat(res, constants.SUCCESS_CODE, i18n.__("USER") + i18n.__("NOT_FOUND"), []);
       }
     } catch (err) {
       console.log("err",err);
-      return Helper.jsonFormat(res, constants.BAD_REQUEST_CODE, i18n.__("SERVER_ERROR"), []);
+      return {status:constants.BAD_REQUEST_CODE,data:[]}
+      // return Helper.jsonFormat(res, constants.BAD_REQUEST_CODE, i18n.__("SERVER_ERROR"), []);
     }
   }
  
