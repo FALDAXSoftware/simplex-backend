@@ -100,12 +100,6 @@ class SimplexController extends AppController {
     return decryptedText
   }
 
-  // Used to get user profile
-  async getLatitude(ip) {
-    var value = await iplocation(ip);
-    return value;
-  }
-
   async getEventData() {
     try {
       var keyValue = await AdminSettings
@@ -119,6 +113,20 @@ class SimplexController extends AppController {
       var decryptedText = await module
         .exports
         .getKey(keyValue);
+
+      var promise = await new Promise(async function (resolve, reject) {
+        await request
+          .get(process.env.SIMPLEX_URL + 'events', {
+            headers: {
+              'Authorization': 'ApiKey ' + decryptedText,
+              'Content-Type': 'application/json'
+            }
+          }, function (err, res, body) {
+            resolve(JSON.parse(res.body));
+          });
+      })
+
+      return promise;
 
     } catch (error) {
       console.log(error);
@@ -202,9 +210,7 @@ class SimplexController extends AppController {
   async getUserQouteDetails(req, res) {
     try {
       var data = req.body;
-      // var ip = requestIp.getClientIp(req);
-      // var user_id = 1545;
-      // data.client_ip = ip;
+      // var ip = requestIp.getClientIp(req); var user_id = 1545; data.client_ip = ip;
       // data.end_user_id = 1545;
       let user_id = data.end_user_id;
       var panic_button_details = await AdminSettings
@@ -271,44 +277,6 @@ class SimplexController extends AppController {
     }
   }
 
-  async getSimplexCoinList(req, res) {
-    try {
-      var coinList = await Coins
-        .query()
-        .select()
-        .where('deleted_at', null)
-        .andWhere('is_active', true)
-        .andWhere('is_simplex_supported', true)
-        .orderBy('id', 'DESC');
-
-      var fiatValue = {};
-
-      fiatValue = [
-        {
-          id: 1,
-          coin: "USD",
-          coin_icon: "https://s3.us-east-2.amazonaws.com/production-static-asset/coin/usd.png"
-        }, {
-          id: 2,
-          coin: "EUR",
-          coin_icon: "https://s3.us-east-2.amazonaws.com/production-static-asset/coin/euro.png"
-        }
-      ]
-
-      var object = {
-        coinList,
-        fiat: fiatValue
-      }
-
-      return res
-        .status(200)
-        .json({"status": 200, "message": ("coin list retrieve success"), object})
-    } catch (error) {
-      console.log(error);
-      return res.json({status: 500, "err": ("Something Wrong")});
-    }
-  }
-
   // Get partner data value on the basis of the information passed by the user
   async getPartnerData(req, res) {
     try {
@@ -317,7 +285,7 @@ class SimplexController extends AppController {
       var user_id = data.main_details.account_details.app_end_user_id;
       let main_details = data.main_details;
       let payment_id = main_details.transaction_details.payment_details.payment_id;
-      // Checking for panic button details
+      // Checking for panic button
       var panic_button_details = await AdminSettings
         .query()
         .first()
@@ -408,74 +376,24 @@ class SimplexController extends AppController {
         .where('deleted_at', null)
         .andWhere('slug', 'access_token')
         .orderBy('id', 'DESC')
-      var key = [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16
-      ];
-      var iv = [
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36
-      ]
 
-      // When ready to decrypt the hex string, convert it back to bytes
-      var encryptedBytes = aesjs
-        .utils
-        .hex
-        .toBytes(keyValue.value);
+      var decryptedText = await module
+        .exports
+        .getKey(keyValue);
 
-      // The output feedback mode of operation maintains internal state, so to decrypt
-      // a new instance must be instantiated.
-      var aesOfb = new aesjs
-        .ModeOfOperation
-        .ofb(key, iv);
-
-      var decryptedBytes = aesOfb.decrypt(encryptedBytes);
-
-      // Convert our bytes back into text
-      var decryptedText = aesjs
-        .utils
-        .utf8
-        .fromBytes(decryptedBytes);
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .delete(sails.config.local.SIMPLEX_URL + "events/" + event_id, {
             headers: {
-              'Authorization': 'ApiKey ' + key,
+              'Authorization': 'ApiKey ' + decryptedText,
               'Content-Type': 'application/json'
             }
           }, function (err, res, body) {
             console.log(res.body);
+            return (res.body)
           });
       })
-      return 1;
+      return promise;
 
     } catch (err) {
       console.log(err);
@@ -505,20 +423,30 @@ class SimplexController extends AppController {
           payment_data = JSON.parse(payment_data);
           console.log(payment_data)
           if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
-            var feesFaldax = await AdminSetting.findOne({
-              where: {
-                deleted_at: null,
-                slug: 'simplex_faldax_fees'
-              }
-            })
-            var coinData = await Coins.findOne({
-              where: {
-                deleted_at: null,
-                is_active: true,
-                coin: tradeData[i].currency
-              }
-            });
-            var walletData = await Wallet.findOne({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
+            var feesFaldax = await AdminSetting
+              .query()
+              .first()
+              .select()
+              .where('deleted_at', null)
+              .andWhere('slug', 'simplex_faldax_fees')
+              .orderBy('id', 'DESC')
+
+            var coinData = await Coins
+              .query()
+              .first()
+              .select()
+              .where('deleted_at', null)
+              .andWhere('is_active', true)
+              .andWhere('coin', tradeData[i].currency)
+              .orderBy('id', 'DESC');
+            var walletData = await Wallet
+              .query()
+              .first()
+              .select()
+              .where('coin_id', coinData.id)
+              .andWhere('deleted_at', null)
+              .andWhere()
+              .findOne({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
             if (walletData != undefined) {
               var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
               var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
