@@ -39,10 +39,90 @@ class SimplexController extends AppController {
 
   }
 
+  async getKey(keyValue) {
+    var key = [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ];
+    var iv = [
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36
+    ]
+
+    // When ready to decrypt the hex string, convert it back to bytes
+    var encryptedBytes = aesjs
+      .utils
+      .hex
+      .toBytes(keyValue.value);
+
+    // The output feedback mode of operation maintains internal state, so to decrypt
+    // a new instance must be instantiated.
+    var aesOfb = new aesjs
+      .ModeOfOperation
+      .ofb(key, iv);
+
+    var decryptedBytes = aesOfb.decrypt(encryptedBytes);
+
+    // Convert our bytes back into text
+    let decryptedText = aesjs
+      .utils
+      .utf8
+      .fromBytes(decryptedBytes);
+
+    return decryptedText
+  }
+
   // Used to get user profile
   async getLatitude(ip) {
     var value = await iplocation(ip);
     return value;
+  }
+
+  async getEventData() {
+    try {
+      var keyValue = await AdminSettings
+        .query()
+        .first()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('slug', 'access_token')
+        .orderBy('id', 'DESC')
+
+      var decryptedText = await module
+        .exports
+        .getKey(keyValue);
+
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getPartnerDataInfo(data) {
@@ -54,62 +134,10 @@ class SimplexController extends AppController {
         .where('deleted_at', null)
         .andWhere('slug', 'access_token')
         .orderBy('id', 'DESC')
-      var key = [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16
-      ];
-      var iv = [
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36
-      ]
 
-      // When ready to decrypt the hex string, convert it back to bytes
-      var encryptedBytes = aesjs
-        .utils
-        .hex
-        .toBytes(keyValue.value);
-
-      // The output feedback mode of operation maintains internal state, so to decrypt
-      // a new instance must be instantiated.
-      var aesOfb = new aesjs
-        .ModeOfOperation
-        .ofb(key, iv);
-
-      var decryptedBytes = aesOfb.decrypt(encryptedBytes);
-
-      // Convert our bytes back into text
-      var decryptedText = aesjs
-        .utils
-        .utf8
-        .fromBytes(decryptedBytes);
+      var decryptedText = await module
+        .exports
+        .getKey(keyValue);
 
       var promise = await new Promise(function (resolve, reject) {
         request
@@ -139,62 +167,9 @@ class SimplexController extends AppController {
         .andWhere('slug', 'access_token')
         .orderBy('id', 'DESC')
 
-      var key = [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16
-      ];
-      var iv = [
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36
-      ]
-
-      // When ready to decrypt the hex string, convert it back to bytes
-      var encryptedBytes = aesjs
-        .utils
-        .hex
-        .toBytes(keyValue.value);
-
-      // The output feedback mode of operation maintains internal state, so to decrypt
-      // a new instance must be instantiated.
-      var aesOfb = new aesjs
-        .ModeOfOperation
-        .ofb(key, iv);
-
-      var decryptedBytes = aesOfb.decrypt(encryptedBytes);
-
-      // Convert our bytes back into text
-      var decryptedText = aesjs
-        .utils
-        .utf8
-        .fromBytes(decryptedBytes);
+      var decryptedText = await module
+        .exports
+        .getKey(keyValue);
 
       var promise = await new Promise(async function (resolve, reject) {
         await request
@@ -477,6 +452,211 @@ class SimplexController extends AppController {
     } catch (err) {
       console.log(err);
       return res.json({status: 500, "err": ("Something Wrong")});
+    }
+  }
+
+  async deleteEvent(event_id) {
+    try {
+      var keyValue = await AdminSettings
+        .query()
+        .first()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('slug', 'access_token')
+        .orderBy('id', 'DESC')
+      var key = [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ];
+      var iv = [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ]
+
+      // When ready to decrypt the hex string, convert it back to bytes
+      var encryptedBytes = aesjs
+        .utils
+        .hex
+        .toBytes(keyValue.value);
+
+      // The output feedback mode of operation maintains internal state, so to decrypt
+      // a new instance must be instantiated.
+      var aesOfb = new aesjs
+        .ModeOfOperation
+        .ofb(key, iv);
+
+      var decryptedBytes = aesOfb.decrypt(encryptedBytes);
+
+      // Convert our bytes back into text
+      var decryptedText = aesjs
+        .utils
+        .utf8
+        .fromBytes(decryptedBytes);
+      var promise = await new Promise(async function (resolve, reject) {
+        await request
+          .delete(sails.config.local.SIMPLEX_URL + "events/" + event_id, {
+            headers: {
+              'Authorization': 'ApiKey ' + key,
+              'Content-Type': 'application/json'
+            }
+          }, function (err, res, body) {
+            console.log(res.body);
+          });
+      })
+      return 1;
+
+    } catch (err) {
+      console.log(err);
+      await logger.error(err.message)
+    }
+  }
+
+  async checkPaymentStatus() {
+    try {
+      console.log("Inside this method????????")
+      var data = await module
+        .exports
+        .getEventData();
+      console.log(data);
+      var tradeData = await SimplexTradeHistory
+        .query()
+        .select()
+        .where('deleted_at', null)
+        .andWhere('trade_type', 3)
+        .andWhere('simplex_payment_status', 1)
+        .andWhere('is_processed', false)
+        .orderBy('id', 'DESC');
+
+      for (var i = 0; i < tradeData.length; i++) {
+        for (var j = 0; j < data.events.length; j++) {
+          var payment_data = JSON.stringify(data.events[j].payment);
+          payment_data = JSON.parse(payment_data);
+          console.log(payment_data)
+          if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
+            var feesFaldax = await AdminSetting.findOne({
+              where: {
+                deleted_at: null,
+                slug: 'simplex_faldax_fees'
+              }
+            })
+            var coinData = await Coins.findOne({
+              where: {
+                deleted_at: null,
+                is_active: true,
+                coin: tradeData[i].currency
+              }
+            });
+            var walletData = await Wallet.findOne({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
+            if (walletData != undefined) {
+              var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
+              var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
+              var walletUpdate = await Wallet
+                .update({coin_id: coinData.id, deleted_at: null, receive_address: tradeData[i].address, user_id: tradeData[i].user_id})
+                .set({balance: balanceData, placed_balance: placedBalanceData});
+
+              var walletUpdated = await Wallet.findOne({
+                where: {
+                  deleted_at: null,
+                  coin_id: coinData.id,
+                  user_id: 36,
+                  is_admin: true
+                }
+              })
+              if (walletUpdated != undefined) {
+                var balance = parseFloat(walletUpdated.balance) + (tradeData[i].fill_price);
+                var placed_balance = parseFloat(walletUpdated.placed_balance) + (tradeData[i].fill_price);
+                var walletUpdated = await Wallet
+                  .update({deleted_at: null, coin_id: coinData.id, user_id: 36, is_admin: true})
+                  .set({balance: balance, placed_balance: placed_balance})
+              }
+            }
+            if (tradeData[i].simplex_payment_status == 1) {
+              var tradeHistoryData = await SimplexTradeHistory
+                .update({id: tradeData[i].id})
+                .set({simplex_payment_status: 2, is_processed: true})
+                .fetch();
+
+              console.log("Trade History Data >>>>>>>>>>>.", tradeHistoryData);
+
+              let referredData = await sails
+                .helpers
+                .tradding
+                .getRefferedAmount(tradeHistoryData, tradeHistoryData.user_id, tradeData[i].id);
+
+              console.log("Deleteing the event in if")
+
+              console.log(data.events[j].id);
+              await this.deleteEvent(data.events[j].event_id)
+            }
+          } else if (payment_data.id == tradeData[i].payment_id) {
+            console.log("ELSE IF >>>>>>>>>>>>>")
+            if (payment_data.status == "pending_simplexcc_approval") {
+              console.log("IF ????????????")
+              var tradeHistoryData = await SimplexTradeHistory
+                .update({id: tradeData[i].id})
+                .set({simplex_payment_status: 2, is_processed: true})
+                .fetch();
+
+              console.log("Deleteing the event in else", data.events[j].event_id)
+
+              await this.deleteEvent(data.events[j].event_id)
+
+              var referData = await Referral.findOne({
+                where: {
+                  deleted_at: null,
+                  txid: tradeData[i].id
+                }
+              })
+              console.log("Refer Data >>>>>>>>>", referData);
+
+              if (referData != undefined) {
+                let referredData = await sails
+                  .helpers
+                  .tradding
+                  .getRefferedAmount(tradeHistoryData, tradeHistoryData.user_id, tradeData[i].id);
+
+              }
+            } else if (payment_data.status == "cancelled") {
+              var tradeHistoryData = await SimplexTradeHistory
+                .update({id: tradeData[i].id})
+                .set({simplex_payment_status: 3, is_processed: true});
+              console.log("deleting thsi event further>>>>", data.events[j].event_id);
+              await this.deleteEvent(data.events[j].event_id)
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.log(err);
+      await logger.error(err.message)
     }
   }
 
