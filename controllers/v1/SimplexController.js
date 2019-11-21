@@ -383,7 +383,7 @@ class SimplexController extends AppController {
 
       var promise = await new Promise(async function (resolve, reject) {
         await request
-          .delete(sails.config.local.SIMPLEX_URL + "events/" + event_id, {
+          .delete(process.env.SIMPLEX_URL + "events/" + event_id, {
             headers: {
               'Authorization': 'ApiKey ' + decryptedText,
               'Content-Type': 'application/json'
@@ -413,8 +413,6 @@ class SimplexController extends AppController {
         .select()
         .where('deleted_at', null)
         .andWhere('trade_type', 3)
-        .andWhere('simplex_payment_status', 1)
-        .andWhere('is_processed', false)
         .orderBy('id', 'DESC');
 
       for (var i = 0; i < tradeData.length; i++) {
@@ -422,8 +420,11 @@ class SimplexController extends AppController {
           var payment_data = JSON.stringify(data.events[j].payment);
           payment_data = JSON.parse(payment_data);
           console.log(payment_data)
+          console.log(payment_data.id == tradeData[i].payment_id)
+          console.log(tradeData[i].payment_id);
+          console.log(payment_data.status == "pending_simplexcc_payment_to_partner");
           if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
-            var feesFaldax = await AdminSetting
+            var feesFaldax = await AdminSettings
               .query()
               .first()
               .select()
@@ -475,7 +476,7 @@ class SimplexController extends AppController {
                   .patch({balance: balance, placed_balance: placed_balance})
               }
             }
-            if (tradeData[i].simplex_payment_status == 1) {
+            // if (tradeData[i].simplex_payment_status == 1) {
               var tradeHistoryData = await SimplexTradeHistory
                 .query()
                 .select()
@@ -485,7 +486,7 @@ class SimplexController extends AppController {
 
               console.log(data.events[j].id);
               await module.exports.deleteEvent(data.events[j].event_id)
-            }
+            // }
           } else if (payment_data.id == tradeData[i].payment_id) {
             console.log("ELSE IF >>>>>>>>>>>>>")
             if (payment_data.status == "pending_simplexcc_approval") {
