@@ -1,6 +1,6 @@
 def project_name = "faldax-simplexbackend"
 def dirName = "${project_name}"
-def branch_name_1 = "master" # It is for master
+def branch_name_1 = "master"
 def image_name = "faldax-simplex"
 def container_name = "${image_name}" + "-cont"
 def sshagent_name = "simplex-prod"
