@@ -1,4 +1,4 @@
-FROM 100.69.158.196/buildtool:pm291
+FROM openxcellinc/devops:pm291
 WORKDIR /usr/share/nginx/html/finrax-nodeJs
 COPY package*.json ./
 RUN npm install
