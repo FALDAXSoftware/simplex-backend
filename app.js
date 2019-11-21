@@ -51,22 +51,21 @@ app.use(bodyParser.urlencoded({
 }));
 
 
-// Make Images public
-app.use(express.static('public'));
-
-// Set views folder for emails
-app.set('views', __dirname + '/views');
-// Set template engin for view files
-app.set('view engine', 'pug');
 
 app.all('/*', function (req, res, next) {
   // CORS headers
   res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   // Set custom headers for CORS
-  res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key,Client-Key');
+  res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key,Client-Key,x-token');
   if (req.headers.language) { // If header send language, then set to that language
     i18n.setLocale(req.headers.language);
+  }
+  console.log("req.headers",req.headers);
+  if(req.headers["x-token"] != "faldax-simplex-backend1" ){
+    res
+      .status(403)
+      .json({status: 403, message: ("Unauthorized access")});
   }
   if (req.method == 'OPTIONS') {
     res
