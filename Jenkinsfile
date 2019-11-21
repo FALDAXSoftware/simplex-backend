@@ -24,13 +24,15 @@ volumes: [
 
          stage('Docker Build'){
          container('build-container'){
+             script {
             sshagent(["${sshagent_name}"]) {
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName} && git pull origin master'"
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName} && sudo docker build -t ${project_name} ."
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f ${container_name} || date'"
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p ${system_port}:${cont_port} --name ${container_name} ${project_name}:latest'"
                     }
-                }
+                } 
+         }
             }
         }
     }
