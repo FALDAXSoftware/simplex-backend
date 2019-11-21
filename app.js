@@ -61,8 +61,8 @@ app.all('/*', function (req, res, next) {
   if (req.headers.language) { // If header send language, then set to that language
     i18n.setLocale(req.headers.language);
   }
-  console.log("req.headers",req.headers);
-  if(req.headers["x-token"] != "faldax-simplex-backend1" ){
+  
+  if(req.headers["x-token"] != "faldax-simplex-backend" ){
     res
       .status(403)
       .json({status: 403, message: ("Unauthorized access")});
