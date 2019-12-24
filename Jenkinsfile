@@ -27,6 +27,11 @@ volumes: [
              script {
             sshagent(["${sshagent_name}"]) {
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName} && git pull origin master'"
+                    if (namespace){
+                        withAWS(credentials:'jenkins_s3_upload') {
+                            s3Download(file:'.env', bucket:'env.faldax', path:"faldax-simplexbackend/${namespace}/.env", force:true)
+                    }
+                    sh "ls -a"
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName} && sudo docker build -t ${project_name} ."
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f ${container_name} || date'"
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p ${system_port}:${cont_port} --name ${container_name} ${project_name}:latest'"
