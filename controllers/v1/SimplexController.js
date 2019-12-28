@@ -72,7 +72,7 @@ class SimplexController extends AppController {
   async getEventData() {
     try {
 
-      var keyValue = process.env.ACCESS_TOKEN;
+      var keyValue = process.env.SIMPLEX_ACCESS_TOKEN;
 
       var decryptedText = await module
         .exports
@@ -100,7 +100,7 @@ class SimplexController extends AppController {
 
   async getPartnerDataInfo(data) {
     try {
-      var keyValue = process.env.ACCESS_TOKEN;
+      var keyValue = process.env.SIMPLEX_ACCESS_TOKEN;
 
       var decryptedText = await module
         .exports
@@ -126,7 +126,7 @@ class SimplexController extends AppController {
 
   async getQouteDetails(data) {
     try {
-      var keyValue = process.env.ACCESS_TOKEN;
+      var keyValue = process.env.SIMPLEX_ACCESS_TOKEN;
 
       var decryptedText = await module
         .exports
@@ -145,7 +145,7 @@ class SimplexController extends AppController {
               "requested_currency": data.requested_currency,
               "requested_amount": data.requested_amount,
               "end_user_id": (data.end_user_id).toString(),
-              "wallet_id": process.env.WALLET_ID,
+              "wallet_id": process.env.SIMPLEX_WALLET_ID,
               "client_ip": (data.client_ip)
             })
           }, async function (err, res, body) {
@@ -339,8 +339,8 @@ class SimplexController extends AppController {
               "version": 1,
               "partner": "faldax",
               "payment_flow_type": "wallet",
-              "return_url_success": process.env.SUCCESS_URL,
-              "return_url_fail": process.env.FAIL_URL,
+              "return_url_success": process.env.SIMPLEX_SUCCESS_URL,
+              "return_url_fail": process.env.SIMPLEX_FAIL_URL,
               "payment_id": payment_id,
               "quote_id": data.quote_id,
               "user_id": user_id,
@@ -350,7 +350,7 @@ class SimplexController extends AppController {
               "fiat_total_amount[currency]": data.fiat_currency,
               "digital_total_amount[amount]": parseFloat(data.total_amount),
               "digital_total_amount[currency]": data.currency,
-              "action": process.env.ACTION_URL
+              "action": process.env.SIMPLEX_ACTION_URL
             }
             var now = new Date();
 
@@ -405,7 +405,7 @@ class SimplexController extends AppController {
 
   async deleteEvent(event_id) {
     try {
-      var keyValue = process.env.ACCESS_TOKEN;
+      var keyValue = process.env.SIMPLEX_ACCESS_TOKEN;
 
       var decryptedText = await module
         .exports
