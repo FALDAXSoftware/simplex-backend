@@ -43,8 +43,9 @@ class SimplexController extends AppController {
   }
 
   async getKey(keyValue) {
-    var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+
+    var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
 
     // When ready to decrypt the hex string, convert it back to bytes
     var encryptedBytes = aesjs
@@ -132,6 +133,10 @@ class SimplexController extends AppController {
         .exports
         .getKey(keyValue);
 
+      var decryptedWalletId = await module
+        .exports
+        .getKey(process.env.SIMPLEX_WALLET_ID)
+
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
@@ -145,7 +150,7 @@ class SimplexController extends AppController {
               "requested_currency": data.requested_currency,
               "requested_amount": data.requested_amount,
               "end_user_id": (data.end_user_id).toString(),
-              "wallet_id": process.env.SIMPLEX_WALLET_ID,
+              "wallet_id": decryptedWalletId,
               "client_ip": (data.client_ip)
             })
           }, async function (err, res, body) {
