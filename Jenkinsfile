@@ -31,7 +31,7 @@ podTemplate(label: label, containers: [
                     shortGitCommit = "${gitCommit[0..10]}${env.BUILD_NUMBER}"
                     imageTag = shortGitCommit
                     namespace = getNamespace(myRepo.GIT_BRANCH);
-                    script{
+                    steps {
                     if (env.BRANCH_NAME == "master") {
                         sshagent(["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
