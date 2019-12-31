@@ -43,6 +43,8 @@ class SimplexController extends AppController {
   async getKey(keyValue) {
 
     var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
     var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
 
     // When ready to decrypt the hex string, convert it back to bytes
@@ -77,21 +79,47 @@ class SimplexController extends AppController {
         .exports
         .getKey(keyValue);
 
-      var promise = await new Promise(async function (resolve, reject) {
-        await request
+      return new Promise(function (resolve, reject) {
+        request
           .get(process.env.SIMPLEX_URL + 'events', {
             headers: {
               'Authorization': 'ApiKey ' + decryptedText,
               'Content-Type': 'application/json'
             }
           }, function (err, res, body) {
-            console.log(err);
+            // console.log("err", err);
+            // console.log("res", res.body);
+            // console.log("body", body);
+            if (err) {
+              reject(err);
+            }
             resolve(JSON.parse(res.body));
           });
       })
 
-      return promise;
+      // console.log("Promise", newPromise)
+      // return newPromise;
 
+    } catch (error) {
+      console.log(error);
+      return error
+    }
+  }
+
+  async getCronEventData(req, res) {
+    try {
+      var dataValue = module.exports.getEventData().then((sc) => {
+        console.log("sc", sc);
+      }).catch((err) => {
+        console.log("errrr", err);
+      });
+      console.log("data", dataValue);
+
+      return res.status.json({
+        "status": 200,
+        "message": "Events Data has been retrieved successfully",
+        "data": dataValue
+      })
     } catch (error) {
       console.log(error);
     }
@@ -130,6 +158,8 @@ class SimplexController extends AppController {
       var decryptedText = await module
         .exports
         .getKey(keyValue);
+
+      console.log(decryptedText)
 
       var decryptedWalletId = await module
         .exports
@@ -433,88 +463,92 @@ class SimplexController extends AppController {
     }
   }
 
+  async cronDeleteEvent(req, res) {
+    try {
+      var event_id = req.params.event_id;
+
+      var deleteData = await module.exports.deleteEvent(event_id);
+      return res.status(200).json({
+        "status": 200,
+        "message": "Event Deleted Successfully"
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   async checkPaymentStatus() {
     try {
       var data = await module
         .exports
         .getEventData();
-
+      console.log("data", data.events);
       var tradeData = await SimplexTradeHistory
         .query()
         .select()
         .where('deleted_at', null)
         .andWhere('trade_type', 3)
         .orderBy('id', 'DESC');
+      console.log("tradedat", tradeData)
+      if (tradeData.length > 0) {
+        for (var i = 0; i < tradeData.length; i++) {
+          for (var j = 0; j < data.events.length; j++) {
+            var payment_data = JSON.stringify(data.events[j].payment);
+            payment_data = JSON.parse(payment_data);
+            if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
+              var feesFaldax = await AdminSettings
+                .query()
+                .first()
+                .select()
+                .where('deleted_at', null)
+                .andWhere('slug', 'simplex_faldax_fees')
+                .orderBy('id', 'DESC')
 
-      for (var i = 0; i < tradeData.length; i++) {
-        for (var j = 0; j < data.events.length; j++) {
-          var payment_data = JSON.stringify(data.events[j].payment);
-          payment_data = JSON.parse(payment_data);
-          if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
-            var feesFaldax = await AdminSettings
-              .query()
-              .first()
-              .select()
-              .where('deleted_at', null)
-              .andWhere('slug', 'simplex_faldax_fees')
-              .orderBy('id', 'DESC')
+              var coinData = await Coins
+                .query()
+                .first()
+                .select()
+                .where('deleted_at', null)
+                .andWhere('is_active', true)
+                .andWhere('coin', tradeData[i].currency)
+                .orderBy('id', 'DESC');
 
-            var coinData = await Coins
-              .query()
-              .first()
-              .select()
-              .where('deleted_at', null)
-              .andWhere('is_active', true)
-              .andWhere('coin', tradeData[i].currency)
-              .orderBy('id', 'DESC');
-
-            var walletData = await Wallet
-              .query()
-              .first()
-              .select()
-              .where('coin_id', coinData.id)
-              .andWhere('deleted_at', null)
-              .andWhere('receive_address', tradeData[i].address)
-              .andWhere('user_id', tradeData[i].user_id)
-              .orderBy('id', 'DESC');
-
-            if (walletData != undefined) {
-              var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
-              var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
-              var walletUpdate = await walletData
-                .$query()
-                .patch({ balance: balanceData, placed_balance: placedBalanceData });
-
-              var walletUpdated = await Wallet
+              var walletData = await Wallet
                 .query()
                 .first()
                 .select()
                 .where('coin_id', coinData.id)
                 .andWhere('deleted_at', null)
-                .andWhere('is_admin', true)
-                .andWhere('user_id', 36)
+                .andWhere('receive_address', tradeData[i].address)
+                .andWhere('user_id', tradeData[i].user_id)
                 .orderBy('id', 'DESC');
 
-              if (walletUpdated != undefined) {
-                var balance = parseFloat(walletUpdated.balance) + (tradeData[i].fill_price);
-                var placed_balance = parseFloat(walletUpdated.placed_balance) + (tradeData[i].fill_price);
-                var walletUpdated = await walletUpdated
+              if (walletData != undefined) {
+                var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
+                var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
+                var walletUpdate = await walletData
                   .$query()
-                  .patch({ balance: balance, placed_balance: placed_balance })
-              }
-            }
-            // if (tradeData[i].simplex_payment_status == 1) {
-            var tradeHistoryData = await SimplexTradeHistory
-              .query()
-              .select()
-              .first()
-              .where('id', tradeData[i].id)
-              .patch({ simplex_payment_status: 2, is_processed: true });
+                  .patch({ balance: balanceData, placed_balance: placedBalanceData });
 
-            await module.exports.deleteEvent(data.events[j].event_id)
-            // }
-          } else if (payment_data.id == tradeData[i].payment_id) {
-            if (payment_data.status == "pending_simplexcc_approval") {
+                var walletUpdated = await Wallet
+                  .query()
+                  .first()
+                  .select()
+                  .where('coin_id', coinData.id)
+                  .andWhere('deleted_at', null)
+                  .andWhere('is_admin', true)
+                  .andWhere('user_id', 36)
+                  .orderBy('id', 'DESC');
+
+                if (walletUpdated != undefined) {
+                  var balance = parseFloat(walletUpdated.balance) + (tradeData[i].fill_price);
+                  var placed_balance = parseFloat(walletUpdated.placed_balance) + (tradeData[i].fill_price);
+                  var walletUpdated = await walletUpdated
+                    .$query()
+                    .patch({ balance: balance, placed_balance: placed_balance })
+                }
+              }
+              // if (tradeData[i].simplex_payment_status == 1) {
               var tradeHistoryData = await SimplexTradeHistory
                 .query()
                 .select()
@@ -523,18 +557,31 @@ class SimplexController extends AppController {
                 .patch({ simplex_payment_status: 2, is_processed: true });
 
               await module.exports.deleteEvent(data.events[j].event_id)
-            } else if (payment_data.status == "cancelled") {
-              var tradeHistoryData = await SimplexTradeHistory
-                .query()
-                .select()
-                .first()
-                .where('id', tradeData[i].id)
-                .patch({ simplex_payment_status: 3, is_processed: true });
-              await module.exports.deleteEvent(data.events[j].event_id)
+              // }
+            } else if (payment_data.id == tradeData[i].payment_id) {
+              if (payment_data.status == "pending_simplexcc_approval") {
+                var tradeHistoryData = await SimplexTradeHistory
+                  .query()
+                  .select()
+                  .first()
+                  .where('id', tradeData[i].id)
+                  .patch({ simplex_payment_status: 2, is_processed: true });
+
+                await module.exports.deleteEvent(data.events[j].event_id)
+              } else if (payment_data.status == "cancelled") {
+                var tradeHistoryData = await SimplexTradeHistory
+                  .query()
+                  .select()
+                  .first()
+                  .where('id', tradeData[i].id)
+                  .patch({ simplex_payment_status: 3, is_processed: true });
+                await module.exports.deleteEvent(data.events[j].event_id)
+              }
             }
           }
         }
       }
+
     } catch (err) {
       console.log(err);
       await logger.error(err.message)
