@@ -31,7 +31,6 @@ podTemplate(label: label, containers: [
                     shortGitCommit = "${gitCommit[0..10]}${env.BUILD_NUMBER}"
                     imageTag = shortGitCommit
                     namespace = getNamespace(myRepo.GIT_BRANCH);
-                    steps {
                     if (env.BRANCH_NAME == "master") {
                         sshagent(credentials: ["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
@@ -53,7 +52,6 @@ podTemplate(label: label, containers: [
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3001:3000 --name faldax-simplex-mainnet-cont faldax-simplex-mainnet:latest'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rmi ${docker ps -a -q}' || echo 'Error deleteing docker images'"
                         }
-                    }
                     }
                 }
             }
