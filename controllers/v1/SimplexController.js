@@ -11,8 +11,6 @@ fetch.Promise = Bluebird;
 var bcrypt = require('bcryptjs');
 var aesjs = require('aes-js');
 var i18n = require("i18n");
-// Extra
-var Helper = require("../../helpers/helpers");
 const constants = require('../../config/constants');
 // Controllers
 var { AppController } = require('./AppController');
