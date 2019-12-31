@@ -33,7 +33,7 @@ podTemplate(label: label, containers: [
                     namespace = getNamespace(myRepo.GIT_BRANCH);
                     steps {
                     if (env.BRANCH_NAME == "master") {
-                        sshagent(["${sshagent_name}"]) {
+                        sshagent(credentials: ["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
@@ -44,7 +44,7 @@ podTemplate(label: label, containers: [
                         }
                     }
                     if (env.BRANCH_NAME == "mainnet") {
-                        sshagent(["${sshagent_name}"]) {
+                        sshagent(credentials: ["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
