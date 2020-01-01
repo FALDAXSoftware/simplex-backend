@@ -113,7 +113,7 @@ class SimplexController extends AppController {
         console.log("errrr", err);
       });
 
-      return res.status.json({
+      return res.status(200).json({
         "status": 200,
         "message": "Events Data has been retrieved successfully",
         "data": dataValue
