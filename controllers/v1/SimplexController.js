@@ -109,11 +109,9 @@ class SimplexController extends AppController {
   async getCronEventData(req, res) {
     try {
       var dataValue = module.exports.getEventData().then((sc) => {
-        console.log("sc", sc);
       }).catch((err) => {
         console.log("errrr", err);
       });
-      console.log("data", dataValue);
 
       return res.status.json({
         "status": 200,
@@ -142,6 +140,7 @@ class SimplexController extends AppController {
             },
             body: JSON.stringify(data)
           }, function (err, res, body) {
+            console.log(res.body)
             resolve(JSON.parse(res.body));
           });
       })
@@ -158,8 +157,6 @@ class SimplexController extends AppController {
       var decryptedText = await module
         .exports
         .getKey(keyValue);
-
-      console.log(decryptedText)
 
       var decryptedWalletId = await module
         .exports
@@ -482,14 +479,12 @@ class SimplexController extends AppController {
       var data = await module
         .exports
         .getEventData();
-      console.log("data", data.events);
       var tradeData = await SimplexTradeHistory
         .query()
         .select()
         .where('deleted_at', null)
         .andWhere('trade_type', 3)
         .orderBy('id', 'DESC');
-      console.log("tradedat", tradeData)
       if (tradeData.length > 0) {
         for (var i = 0; i < tradeData.length; i++) {
           for (var j = 0; j < data.events.length; j++) {
