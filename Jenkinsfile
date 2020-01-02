@@ -3,9 +3,14 @@
 def label = "buildpod.${env.JOB_NAME}.${env.BUILD_NUMBER}".replace('-', '_').replace('/', '_').take(63)
 def gitCredentialsId = "github"
 def imageRepo = "100.69.158.196"
+def ip_address = "3.135.59.18"
+def sshagent_name = "simplex-prod"
+def dirName = "faldax-simplex"
+
 podTemplate(label: label, containers: [
         containerTemplate(name: 'build-container', image: imageRepo + '/buildtool:deployer', command: 'cat', ttyEnabled: true),
         containerTemplate(name: 'pm291', image: imageRepo + '/buildtool:pm291', command: 'cat', ttyEnabled: true),
+
     ],
     volumes: [
         hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
@@ -27,12 +32,30 @@ podTemplate(label: label, containers: [
                     shortGitCommit = "${gitCommit[0..10]}${env.BUILD_NUMBER}"
                     imageTag = shortGitCommit
                     namespace = getNamespace(myRepo.GIT_BRANCH);
-                    // if (namespace) {
-                    //     withAWS(credentials: 'jenkins_s3_upload') {
-                    //         s3Download(file: '.env', bucket: 'env.faldax', path: "node-backend/${namespace}/.env", force: true)
-                    //     }
-                    sh "ls -a"
-                    sh "pwd"
+                    if (env.BRANCH_NAME == "master") {
+                        sshagent(credentials: ["${sshagent_name}"]) {
+                            withAWS(credentials:'jenkins_s3_upload') {
+                                s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
+                            }        
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git pull origin master'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-master-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3000:3000 --name faldax-simplex-master-cont faldax-simplex-master:latest'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
+                        }
+                    }
+                    if (env.BRANCH_NAME == "mainnet") {
+                        sshagent(credentials: ["${sshagent_name}"]) {
+                            withAWS(credentials:'jenkins_s3_upload') {
+                                s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
+                            }        
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-mainnet && sudo git pull origin mainnet'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-mainnet && sudo docker build -t faldax-simplex-mainnet .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-mainnet-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3001:3001 --name faldax-simplex-mainnet-cont faldax-simplex-mainnet:latest'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
+                        }
+                    }
                 }
             }
         }
