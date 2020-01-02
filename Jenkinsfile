@@ -61,13 +61,3 @@ podTemplate(label: label, containers: [
         }
     }
 }
-
-def getNamespace(branch) {
-    switch (branch) {
-        case 'master': return "prod";
-        case 'development': return "dev";
-        case 'pre-prod': return "pre-prod";
-        case 'mainnet': return "mainnet";
-        default: return null;
-    }
-}
