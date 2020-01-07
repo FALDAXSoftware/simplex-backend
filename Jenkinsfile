@@ -52,7 +52,7 @@ podTemplate(label: label, containers: [
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-qa && sudo git pull origin qa'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-qa && sudo docker build -t faldax-simplex-qa .'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-qa-cont'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3002:3000 --name faldax-simplex-qa-cont faldax-simplex-qa:latest'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3002:3001 --name faldax-simplex-qa-cont faldax-simplex-qa:latest'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
                     }                    
