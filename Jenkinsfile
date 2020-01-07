@@ -44,6 +44,18 @@ podTemplate(label: label, containers: [
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
                     }
+                    if (env.BRANCH_NAME == "qa") {
+                        sshagent(credentials: ["${sshagent_name}"]) {
+                            withAWS(credentials:'jenkins_s3_upload') {
+                                s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
+                            }        
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-qa && sudo git pull origin qa'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-qa && sudo docker build -t faldax-simplex-qa .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-qa-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3002:3000 --name faldax-simplex-qa-cont faldax-simplex-qa:latest'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
+                        }
+                    }                    
                     if (env.BRANCH_NAME == "mainnet") {
                         sshagent(credentials: ["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
