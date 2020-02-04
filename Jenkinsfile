@@ -38,8 +38,9 @@ podTemplate(label: label, containers: [
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git pull origin master'"
+                            sh "scp -o StrictHostKeyChecking=no .env ubuntu@${ip_address}/home/ubuntu/${dirName}-master/.env "
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-master-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo git stash && sudo docker rm -f faldax-simplex-master-cont'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3000:3000 --name faldax-simplex-master-cont faldax-simplex-master:latest'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
@@ -50,8 +51,9 @@ podTemplate(label: label, containers: [
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-mainnet && sudo git pull origin mainnet'"
+                            sh "scp -o StrictHostKeyChecking=no .env ubuntu@${ip_address}/home/ubuntu/${dirName}-mainnet/.env "
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-mainnet && sudo docker build -t faldax-simplex-mainnet .'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rm -f faldax-simplex-mainnet-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo git stash && sudo docker rm -f faldax-simplex-mainnet-cont'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3001:3001 --name faldax-simplex-mainnet-cont faldax-simplex-mainnet:latest'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
