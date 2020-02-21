@@ -162,6 +162,8 @@ class SimplexController extends AppController {
         .exports
         .getKey(process.env.SIMPLEX_WALLET_ID)
 
+      console.log("data", data)
+
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
@@ -173,12 +175,14 @@ class SimplexController extends AppController {
               "digital_currency": data.digital_currency,
               "fiat_currency": data.fiat_currency,
               "requested_currency": data.requested_currency,
-              "requested_amount": data.requested_amount,
+              "requested_amount": parseFloat(data.requested_amount),
               "end_user_id": (data.end_user_id).toString(),
               "wallet_id": decryptedWalletId,
               "client_ip": (data.client_ip)
             })
           }, async function (err, res, body) {
+            console.log(err)
+            console.log(res.body)
             res = await res.toJSON();
             resolve(JSON.parse(res.body));
           });
