@@ -173,7 +173,7 @@ class SimplexController extends AppController {
               "digital_currency": data.digital_currency,
               "fiat_currency": data.fiat_currency,
               "requested_currency": data.requested_currency,
-              "requested_amount": data.requested_amount,
+              "requested_amount": parseFloat(data.requested_amount),
               "end_user_id": (data.end_user_id).toString(),
               "wallet_id": decryptedWalletId,
               "client_ip": (data.client_ip)
