@@ -10,6 +10,7 @@ def dirName = "faldax-simplex"
 podTemplate(label: label, containers: [
         containerTemplate(name: 'build-container', image: imageRepo + '/buildtool:deployer', command: 'cat', ttyEnabled: true),
         containerTemplate(name: 'pm291', image: imageRepo + '/buildtool:pm291', command: 'cat', ttyEnabled: true),
+
     ],
     volumes: [
         hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
@@ -36,10 +37,12 @@ podTemplate(label: label, containers: [
                             withAWS(credentials:'jenkins_s3_upload') {
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo cd /home/ubuntu/${dirName}-master && sudo git pull origin master'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git pull origin master'"
+                            sh "scp -o StrictHostKeyChecking=no ${WORKSPACE}/.env ubuntu@${ip_address}:/tmp"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo mv /tmp/.env /home/ubuntu/${dirName}-mainnet && cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git stash && sudo docker rm -f faldax-simplex-master-cont'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3000:3000 --name faldax-simplex-master-cont faldax-simplex-master:latest'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rmi ${docker ps -a -q}' || echo 'Error deleteing docker images'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
                     }
                     if (env.BRANCH_NAME == "mainnet") {
@@ -47,10 +50,12 @@ podTemplate(label: label, containers: [
                             withAWS(credentials:'jenkins_s3_upload') {
                                 s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
                             }        
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo cd /home/ubuntu/${dirName}-mainnet && sudo git pull origin mainnet'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo cd /home/ubuntu/${dirName}-mainnet && sudo docker build -t faldax-simplex-mainnet .'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3001:3000 --name faldax-simplex-mainnet-cont faldax-simplex-mainnet:latest'"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker rmi ${docker ps -a -q}' || echo 'Error deleteing docker images'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-mainnet && sudo git pull origin mainnet'"
+                            sh "scp -o StrictHostKeyChecking=no ${WORKSPACE}/.env ubuntu@${ip_address}:/tmp"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo mv /tmp/.env /home/ubuntu/${dirName}-mainnet && cd /home/ubuntu/${dirName}-mainnet && sudo docker build -t faldax-simplex-mainnet .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git stash && sudo docker rm -f faldax-simplex-mainnet-cont'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3001:3001 --name faldax-simplex-mainnet-cont faldax-simplex-mainnet:latest'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
                         }
                     }
                 }
@@ -59,12 +64,13 @@ podTemplate(label: label, containers: [
     }
 }
 
-def getNamespace(branch) {
-    switch (branch) {
-        case 'master': return "prod";
-        case 'development': return "dev";
-        case 'pre-prod': return "pre-prod";
-        case 'mainnet': return "mainnet";
-        default: return null;
+def getNamespace(branch){
+    switch(branch){
+        case 'master' : return "prod";
+        case 'development' :  return "dev";
+        case 'pre-prod' : return "pre-prod";
+        case 'mainnet' : return "mainnet";
+        case 'qa' : return "qa";
+        default : return null;
     }
 }
