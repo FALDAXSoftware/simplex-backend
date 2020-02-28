@@ -162,6 +162,10 @@ class SimplexController extends AppController {
         .exports
         .getKey(process.env.SIMPLEX_WALLET_ID)
 
+
+      data.client_ip = "203.88.135.122"
+      console.log("data", data)
+
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
@@ -179,6 +183,8 @@ class SimplexController extends AppController {
               "client_ip": (data.client_ip)
             })
           }, async function (err, res, body) {
+            console.log(err)
+            console.log("BODY", res.body)
             res = await res.toJSON();
             resolve(JSON.parse(res.body));
           });
@@ -208,6 +214,11 @@ class SimplexController extends AppController {
         if (userKyc.direct_response == null && userKyc.webhook_response == null) {
           response = false;
           msg = 'Your KYC is under process. Please wait until KYC is approved'
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return (sendInfo);
         }
         countryData = await Countries
           .query()
@@ -219,6 +230,11 @@ class SimplexController extends AppController {
           if (countryData[0].legality == 1) {
             response = true;
             msg = "You are allowed to trade"
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return (sendInfo);
           } else if (countryData[0].legality == 4) {
             stateData = await State
               .query()
@@ -232,33 +248,56 @@ class SimplexController extends AppController {
               if (stateData.legality == 1) {
                 response = true;
                 msg = "You are allowed to trade"
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return (sendInfo);
               } else {
                 response = false;
                 msg = 'You are not allowed to trade in this regoin as your state is illegal'
-
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return (sendInfo);
               }
             } else {
               response = false;
               msg = 'You are not allowed to trade in this regoin'
+              sendInfo = {
+                response: response,
+                msg: msg
+              }
+              return (sendInfo);
             }
           } else {
             response = false;
             msg = 'You are not allowed to trade in this regoin as country is illegal'
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return (sendInfo);
           }
         } else {
           response = false;
           msg = 'You need to complete your KYC to trade in FALDAX';
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return (sendInfo);
         }
       } else {
         response = false;
         msg = 'You need to complete your KYC to trade in FALDAX';
+        sendInfo = {
+          response: response,
+          msg: msg
+        }
+        return (sendInfo);
       }
-
-      sendInfo = {
-        response: response,
-        msg: msg
-      }
-      return (sendInfo);
     } catch (err) {
       console.log(err);
     }
