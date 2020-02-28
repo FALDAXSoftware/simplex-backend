@@ -200,7 +200,9 @@ class SimplexController extends AppController {
         .query()
         .first()
         .where('user_id', user_id)
-        .orderBy('id', 'DESC')
+        .orderBy('id', 'DESC');
+
+      console.log(userKyc);
 
       var countryData;
       var stateData;
@@ -212,6 +214,11 @@ class SimplexController extends AppController {
         if (userKyc.direct_response == null && userKyc.webhook_response == null) {
           response = false;
           msg = 'Your KYC is under process. Please wait until KYC is approved'
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return sendInfo
         }
         countryData = await Countries
           .query()
@@ -223,6 +230,11 @@ class SimplexController extends AppController {
           if (countryData[0].legality == 1) {
             response = true;
             msg = "You are allowed to trade"
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return sendInfo
           } else if (countryData[0].legality == 4) {
             stateData = await State
               .query()
@@ -236,33 +248,59 @@ class SimplexController extends AppController {
               if (stateData.legality == 1) {
                 response = true;
                 msg = "You are allowed to trade"
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return sendInfo
               } else {
                 response = false;
                 msg = 'You are not allowed to trade in this regoin as your state is illegal'
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return sendInfo
 
               }
             } else {
               response = false;
               msg = 'You are not allowed to trade in this regoin'
+              sendInfo = {
+                response: response,
+                msg: msg
+              }
+              return sendInfo
             }
           } else {
             response = false;
             msg = 'You are not allowed to trade in this regoin as country is illegal'
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return sendInfo
           }
         } else {
           response = false;
           msg = 'You need to complete your KYC to trade in FALDAX';
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return sendInfo
         }
       } else {
         response = false;
         msg = 'You need to complete your KYC to trade in FALDAX';
+        sendInfo = {
+          response: response,
+          msg: msg
+        }
+        return sendInfo
       }
 
-      sendInfo = {
-        response: response,
-        msg: msg
-      }
-      return (sendInfo);
+      // return (sendInfo);
     } catch (err) {
       console.log(err);
     }
@@ -287,11 +325,13 @@ class SimplexController extends AppController {
       if (panic_button_details.value == false || panic_button_details.value == "false") {
         // Checking whether user can trade in the area selected in the KYC 
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
+        console.log(geo_fencing_data);
         if (geo_fencing_data.response == true) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
 
+          console.log(qouteDetail)
           var coinDetails = await Coins
             .query()
             .first()
