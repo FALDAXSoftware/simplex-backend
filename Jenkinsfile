@@ -61,7 +61,7 @@ podTemplate(label: label, containers: [
                     if (env.BRANCH_NAME == "development") {
                         sshagent(credentials: ["${sshagent_name}"]) {
                             withAWS(credentials:'jenkins_s3_upload') {
-                                s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/${namespace}/.env", force:true)
+                                s3Download(file:'.env', bucket:'env.faldax', path:"node-backend/preprod/.env", force:true)
                             }        
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-preprod && sudo git pull origin development'"
                             sh "scp -o StrictHostKeyChecking=no ${WORKSPACE}/.env ubuntu@${ip_address}:/tmp"
