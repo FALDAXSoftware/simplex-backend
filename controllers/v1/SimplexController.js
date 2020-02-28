@@ -42,10 +42,10 @@ class SimplexController extends AppController {
 
   async getKey(keyValue) {
 
-    var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
-    // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
+    // var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    // var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
 
     // When ready to decrypt the hex string, convert it back to bytes
     var encryptedBytes = aesjs
@@ -214,6 +214,11 @@ class SimplexController extends AppController {
         if (userKyc.direct_response == null && userKyc.webhook_response == null) {
           response = false;
           msg = 'Your KYC is under process. Please wait until KYC is approved'
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return (sendInfo);
         }
         countryData = await Countries
           .query()
@@ -225,6 +230,11 @@ class SimplexController extends AppController {
           if (countryData[0].legality == 1) {
             response = true;
             msg = "You are allowed to trade"
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return (sendInfo);
           } else if (countryData[0].legality == 4) {
             stateData = await State
               .query()
@@ -238,33 +248,56 @@ class SimplexController extends AppController {
               if (stateData.legality == 1) {
                 response = true;
                 msg = "You are allowed to trade"
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return (sendInfo);
               } else {
                 response = false;
                 msg = 'You are not allowed to trade in this regoin as your state is illegal'
-
+                sendInfo = {
+                  response: response,
+                  msg: msg
+                }
+                return (sendInfo);
               }
             } else {
               response = false;
               msg = 'You are not allowed to trade in this regoin'
+              sendInfo = {
+                response: response,
+                msg: msg
+              }
+              return (sendInfo);
             }
           } else {
             response = false;
             msg = 'You are not allowed to trade in this regoin as country is illegal'
+            sendInfo = {
+              response: response,
+              msg: msg
+            }
+            return (sendInfo);
           }
         } else {
           response = false;
           msg = 'You need to complete your KYC to trade in FALDAX';
+          sendInfo = {
+            response: response,
+            msg: msg
+          }
+          return (sendInfo);
         }
       } else {
         response = false;
         msg = 'You need to complete your KYC to trade in FALDAX';
+        sendInfo = {
+          response: response,
+          msg: msg
+        }
+        return (sendInfo);
       }
-
-      sendInfo = {
-        response: response,
-        msg: msg
-      }
-      return (sendInfo);
     } catch (err) {
       console.log(err);
     }
