@@ -162,6 +162,8 @@ class SimplexController extends AppController {
         .exports
         .getKey(process.env.SIMPLEX_WALLET_ID)
 
+
+      data.client_ip = "203.88.135.122"
       console.log("data", data)
 
       var promise = await new Promise(async function (resolve, reject) {
@@ -182,7 +184,7 @@ class SimplexController extends AppController {
             })
           }, async function (err, res, body) {
             console.log(err)
-            console.log(res.body)
+            console.log("BODY", res.body)
             res = await res.toJSON();
             resolve(JSON.parse(res.body));
           });
