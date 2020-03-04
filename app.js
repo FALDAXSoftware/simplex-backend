@@ -61,11 +61,11 @@ app.all('/*', function (req, res, next) {
   if (req.headers.language) { // If header send language, then set to that language
     i18n.setLocale(req.headers.language);
   }
-  
-  if(req.headers["x-token"] != "faldax-simplex-backend" ){
+
+  if (req.headers["x-token"] != "faldax-simplex-backend") {
     res
       .status(403)
-      .json({status: 403, message: ("Unauthorized access")});
+      .json({ status: 403, message: ("Unauthorized access") });
   }
   if (req.method == 'OPTIONS') {
     res
@@ -99,7 +99,7 @@ app.use(function (req, res, next) {
   var err = new Error('Resource Not Found');
   err.status = 404;
   var resources = {};
-  res.status( 404 );
+  res.status(404);
   resources.status = err.status;
   resources.message = err.message;
   return res.json(resources);
@@ -109,8 +109,8 @@ app.use(function (req, res, next) {
 // process.on('uncaughtException', function (error) {}); // Ignore error
 
 // Start the server
-app.set('port', process.env.PORT);
+app.set('port', process.env.SIMPLEX_PORT);
 server.listen(app.get('port'), function () {
-  console.log(process.env.PROJECT_NAME + " Application is running on " + process.env.PORT + " port....");
+  console.log(process.env.SIMPLEX_PROJECT_NAME + " Application is running on " + process.env.SIMPLEX_PORT + " port....");
 });
 var cronjobFile = require("./services/cronJobs");
