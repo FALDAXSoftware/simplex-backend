@@ -172,7 +172,8 @@ class SimplexController extends AppController {
           "wallet_id": decryptedWalletId,
           "client_ip": (data.client_ip)
         })
-    await logger.info({ "module": "Simplex", "user_id": "simplex_user", "body": alldata, "type": "Success" }, "Success");
+    //await logger.info({ "module": "Simplex", "user_id": "simplex_user", "body": alldata, "type": "Success" }, "Success");
+    console.log("SIMPLEX ALL REQUEST DATA=>", alldata);
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
