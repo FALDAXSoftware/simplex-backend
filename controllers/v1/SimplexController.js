@@ -161,11 +161,18 @@ class SimplexController extends AppController {
       var decryptedWalletId = await module
         .exports
         .getKey(process.env.SIMPLEX_WALLET_ID)
-
-
+     
       data.client_ip = "203.88.135.122"
-      console.log("data", data)
-
+      var alldata = JSON.stringify({
+          "digital_currency": data.digital_currency,
+          "fiat_currency": data.fiat_currency,
+          "requested_currency": data.requested_currency,
+          "requested_amount": parseFloat(data.requested_amount),
+          "end_user_id": (data.end_user_id).toString(),
+          "wallet_id": decryptedWalletId,
+          "client_ip": (data.client_ip)
+        })
+    await logger.info({ "module": "Simplex", "user_id": "simplex_user", "body": alldata, "type": "Success" }, "Success");
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
