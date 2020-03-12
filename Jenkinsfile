@@ -39,7 +39,7 @@ podTemplate(label: label, containers: [
                             }        
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git pull origin master'"
                             sh "scp -o StrictHostKeyChecking=no ${WORKSPACE}/.env ubuntu@${ip_address}:/tmp"
-                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo mv /tmp/.env /home/ubuntu/${dirName}-master && cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
+                            sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo mv /tmp/.env /home/ubuntu/${dirName}-mainnet && cd /home/ubuntu/${dirName}-master && sudo docker build -t faldax-simplex-master .'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'cd /home/ubuntu/${dirName}-master && sudo git stash && sudo docker rm -f faldax-simplex-master-cont | ls'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker run --restart always -d -p 3003:3003 --name faldax-simplex-master-cont faldax-simplex-master:latest'"
                             sh "ssh -o StrictHostKeyChecking=no ubuntu@${ip_address} 'sudo docker image prune -f'"
