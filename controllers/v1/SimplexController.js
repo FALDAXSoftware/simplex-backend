@@ -41,16 +41,8 @@ class SimplexController extends AppController {
   }
 
   async getKey(keyValue) {
-
-    // var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
-    // // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    // // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    // var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
-
     var key = JSON.parse(process.env.SECRET_KEY);
     var iv = JSON.parse(process.env.SECRET_IV);
-    // var key = process.env.SECRET_KEY;
-    // var iv = process.env.SECRET_IV;
 
     console.log(key);
     console.log(iv);
@@ -214,7 +206,9 @@ class SimplexController extends AppController {
         .query()
         .first()
         .where('user_id', user_id)
-        .orderBy('id', 'DESC')
+        .orderBy('id', 'DESC');
+
+      console.log(userKyc);
 
       var countryData;
       var stateData;
@@ -230,7 +224,7 @@ class SimplexController extends AppController {
             response: response,
             msg: msg
           }
-          return (sendInfo);
+          return sendInfo
         }
         countryData = await Countries
           .query()
@@ -246,7 +240,7 @@ class SimplexController extends AppController {
               response: response,
               msg: msg
             }
-            return (sendInfo);
+            return sendInfo
           } else if (countryData[0].legality == 4) {
             stateData = await State
               .query()
@@ -264,7 +258,7 @@ class SimplexController extends AppController {
                   response: response,
                   msg: msg
                 }
-                return (sendInfo);
+                return sendInfo
               } else {
                 response = false;
                 msg = 'You are not allowed to trade in this regoin as your state is illegal'
@@ -272,7 +266,8 @@ class SimplexController extends AppController {
                   response: response,
                   msg: msg
                 }
-                return (sendInfo);
+                return sendInfo
+
               }
             } else {
               response = false;
@@ -281,7 +276,7 @@ class SimplexController extends AppController {
                 response: response,
                 msg: msg
               }
-              return (sendInfo);
+              return sendInfo
             }
           } else {
             response = false;
@@ -290,7 +285,7 @@ class SimplexController extends AppController {
               response: response,
               msg: msg
             }
-            return (sendInfo);
+            return sendInfo
           }
         } else {
           response = false;
@@ -299,7 +294,7 @@ class SimplexController extends AppController {
             response: response,
             msg: msg
           }
-          return (sendInfo);
+          return sendInfo
         }
       } else {
         response = false;
@@ -308,8 +303,10 @@ class SimplexController extends AppController {
           response: response,
           msg: msg
         }
-        return (sendInfo);
+        return sendInfo
       }
+
+      // return (sendInfo);
     } catch (err) {
       console.log(err);
     }
@@ -332,13 +329,15 @@ class SimplexController extends AppController {
 
       // Checking for if panic button in one or not
       if (panic_button_details.value == false || panic_button_details.value == "false") {
-        // Checking whether user can trade in the area selected in the KYC 
+        // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
+        console.log(geo_fencing_data);
         if (geo_fencing_data.response == true) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
 
+          console.log(qouteDetail)
           var coinDetails = await Coins
             .query()
             .first()
@@ -372,7 +371,7 @@ class SimplexController extends AppController {
               coinDetails
             });
 
-        } else {   // Whatever the response of user trade checking   
+        } else {   // Whatever the response of user trade checking
           res.json({
             "status": 200,
             "message": geo_fencing_data.msg
@@ -466,7 +465,7 @@ class SimplexController extends AppController {
               .json({ "status": 400, "message": ("payment fail") })
           }
 
-        } else {   // Whatever the response of user trade checking   
+        } else {   // Whatever the response of user trade checking
           res.json({
             "status": 200,
             "message": (geo_fencing_data.msg)
