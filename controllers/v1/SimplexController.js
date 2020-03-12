@@ -42,10 +42,15 @@ class SimplexController extends AppController {
 
   async getKey(keyValue) {
 
-    // var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
-    var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    // var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
+    var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
+    // var key = process.env.SECRET_KEY;
+    // var iv = process.env.SECRET_IV;
+
+    console.log(key);
+    console.log(iv);
 
     // When ready to decrypt the hex string, convert it back to bytes
     var encryptedBytes = aesjs
@@ -90,6 +95,7 @@ class SimplexController extends AppController {
             // console.log("err", err);
             // console.log("res", res.body);
             // console.log("body", body);
+            // console.log(JSON.parse(res.body))
             if (err) {
               reject(err);
             }
@@ -108,10 +114,10 @@ class SimplexController extends AppController {
 
   async getCronEventData(req, res) {
     try {
-      var dataValue = module.exports.getEventData().then((sc) => {
-      }).catch((err) => {
-        console.log("errrr", err);
-      });
+      var dataValue = await module.exports.getEventData()
+
+
+      console.log("dataValue", dataValue)
 
       return res.status(200).json({
         "status": 200,
@@ -130,6 +136,8 @@ class SimplexController extends AppController {
       var decryptedText = await module
         .exports
         .getKey(keyValue);
+
+      console.log(data)
 
       var promise = await new Promise(function (resolve, reject) {
         request
@@ -194,6 +202,7 @@ class SimplexController extends AppController {
       console.log("Error in rising falling data ::::: ", err);
     }
   }
+
 
   async userTradeChecking(user_id) {
     try {
@@ -512,115 +521,6 @@ class SimplexController extends AppController {
       console.log(error)
     }
   }
-
-  // async checkPaymentStatus() {
-  //   try {
-  //     var data = await module
-  //       .exports
-  //       .getEventData();
-  //     var tradeData = await SimplexTradeHistory
-  //       .query()
-  //       .select()
-  //       .where('deleted_at', null)
-  //       .andWhere('trade_type', 3)
-  //       .orderBy('id', 'DESC');
-  //     if (tradeData.length > 0) {
-  //       for (var i = 0; i < tradeData.length; i++) {
-  //         for (var j = 0; j < data.events.length; j++) {
-  //           var payment_data = JSON.stringify(data.events[j].payment);
-  //           payment_data = JSON.parse(payment_data);
-  //           if (payment_data.id == tradeData[i].payment_id && payment_data.status == "pending_simplexcc_payment_to_partner") {
-  //             var feesFaldax = await AdminSettings
-  //               .query()
-  //               .first()
-  //               .select()
-  //               .where('deleted_at', null)
-  //               .andWhere('slug', 'simplex_faldax_fees')
-  //               .orderBy('id', 'DESC')
-
-  //             var coinData = await Coins
-  //               .query()
-  //               .first()
-  //               .select()
-  //               .where('deleted_at', null)
-  //               .andWhere('is_active', true)
-  //               .andWhere('coin', tradeData[i].currency)
-  //               .orderBy('id', 'DESC');
-
-  //             var walletData = await Wallet
-  //               .query()
-  //               .first()
-  //               .select()
-  //               .where('coin_id', coinData.id)
-  //               .andWhere('deleted_at', null)
-  //               .andWhere('receive_address', tradeData[i].address)
-  //               .andWhere('user_id', tradeData[i].user_id)
-  //               .orderBy('id', 'DESC');
-
-  //             if (walletData != undefined) {
-  //               var balanceData = parseFloat(walletData.balance) + (tradeData[i].fill_price)
-  //               var placedBalanceData = parseFloat(walletData.placed_balance) + (tradeData[i].fill_price)
-  //               var walletUpdate = await walletData
-  //                 .$query()
-  //                 .patch({ balance: balanceData, placed_balance: placedBalanceData });
-
-  //               var walletUpdated = await Wallet
-  //                 .query()
-  //                 .first()
-  //                 .select()
-  //                 .where('coin_id', coinData.id)
-  //                 .andWhere('deleted_at', null)
-  //                 .andWhere('is_admin', true)
-  //                 .andWhere('user_id', 36)
-  //                 .orderBy('id', 'DESC');
-
-  //               if (walletUpdated != undefined) {
-  //                 var balance = parseFloat(walletUpdated.balance) + (tradeData[i].fill_price);
-  //                 var placed_balance = parseFloat(walletUpdated.placed_balance) + (tradeData[i].fill_price);
-  //                 var walletUpdated = await walletUpdated
-  //                   .$query()
-  //                   .patch({ balance: balance, placed_balance: placed_balance })
-  //               }
-  //             }
-  //             // if (tradeData[i].simplex_payment_status == 1) {
-  //             var tradeHistoryData = await SimplexTradeHistory
-  //               .query()
-  //               .select()
-  //               .first()
-  //               .where('id', tradeData[i].id)
-  //               .patch({ simplex_payment_status: 2, is_processed: true });
-
-  //             await module.exports.deleteEvent(data.events[j].event_id)
-  //             // }
-  //           } else if (payment_data.id == tradeData[i].payment_id) {
-  //             if (payment_data.status == "pending_simplexcc_approval") {
-  //               var tradeHistoryData = await SimplexTradeHistory
-  //                 .query()
-  //                 .select()
-  //                 .first()
-  //                 .where('id', tradeData[i].id)
-  //                 .patch({ simplex_payment_status: 2, is_processed: true });
-
-  //               await module.exports.deleteEvent(data.events[j].event_id)
-  //             } else if (payment_data.status == "cancelled") {
-  //               var tradeHistoryData = await SimplexTradeHistory
-  //                 .query()
-  //                 .select()
-  //                 .first()
-  //                 .where('id', tradeData[i].id)
-  //                 .patch({ simplex_payment_status: 3, is_processed: true });
-  //               await module.exports.deleteEvent(data.events[j].event_id)
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-
-  //   } catch (err) {
-  //     console.log(err);
-  //     await logger.error(err.message)
-  //   }
-  // }
 
 }
 
