@@ -214,7 +214,9 @@ class SimplexController extends AppController {
         .query()
         .first()
         .where('user_id', user_id)
-        .orderBy('id', 'DESC')
+        .orderBy('id', 'DESC');
+
+      console.log(userKyc);
 
       var countryData;
       var stateData;
@@ -230,7 +232,7 @@ class SimplexController extends AppController {
             response: response,
             msg: msg
           }
-          return (sendInfo);
+          return sendInfo
         }
         countryData = await Countries
           .query()
@@ -246,7 +248,7 @@ class SimplexController extends AppController {
               response: response,
               msg: msg
             }
-            return (sendInfo);
+            return sendInfo
           } else if (countryData[0].legality == 4) {
             stateData = await State
               .query()
@@ -264,7 +266,7 @@ class SimplexController extends AppController {
                   response: response,
                   msg: msg
                 }
-                return (sendInfo);
+                return sendInfo
               } else {
                 response = false;
                 msg = 'You are not allowed to trade in this regoin as your state is illegal'
@@ -272,7 +274,8 @@ class SimplexController extends AppController {
                   response: response,
                   msg: msg
                 }
-                return (sendInfo);
+                return sendInfo
+
               }
             } else {
               response = false;
@@ -281,7 +284,7 @@ class SimplexController extends AppController {
                 response: response,
                 msg: msg
               }
-              return (sendInfo);
+              return sendInfo
             }
           } else {
             response = false;
@@ -290,7 +293,7 @@ class SimplexController extends AppController {
               response: response,
               msg: msg
             }
-            return (sendInfo);
+            return sendInfo
           }
         } else {
           response = false;
@@ -299,7 +302,7 @@ class SimplexController extends AppController {
             response: response,
             msg: msg
           }
-          return (sendInfo);
+          return sendInfo
         }
       } else {
         response = false;
@@ -308,8 +311,10 @@ class SimplexController extends AppController {
           response: response,
           msg: msg
         }
-        return (sendInfo);
+        return sendInfo
       }
+
+      // return (sendInfo);
     } catch (err) {
       console.log(err);
     }
@@ -332,13 +337,15 @@ class SimplexController extends AppController {
 
       // Checking for if panic button in one or not
       if (panic_button_details.value == false || panic_button_details.value == "false") {
-        // Checking whether user can trade in the area selected in the KYC 
+        // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
+        console.log(geo_fencing_data);
         if (geo_fencing_data.response == true) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
 
+          console.log(qouteDetail)
           var coinDetails = await Coins
             .query()
             .first()
@@ -372,7 +379,7 @@ class SimplexController extends AppController {
               coinDetails
             });
 
-        } else {   // Whatever the response of user trade checking   
+        } else {   // Whatever the response of user trade checking
           res.json({
             "status": 200,
             "message": geo_fencing_data.msg
@@ -468,7 +475,7 @@ class SimplexController extends AppController {
               .json({ "status": 400, "message": ("payment fail") })
           }
 
-        } else {   // Whatever the response of user trade checking   
+        } else {   // Whatever the response of user trade checking
           res.json({
             "status": 200,
             "message": (geo_fencing_data.msg)
