@@ -206,6 +206,42 @@ class SimplexController extends AppController {
     }
   }
 
+  async getWithoutUserQouteDetails(req, res) {
+    try {
+      var data = req.body;
+      // var ip = requestIp.getClientIp(req); var user_id = 1545; data.client_ip = ip;
+      // data.end_user_id = 1545;
+      // let user_id = 165486416541646541545446;
+
+      // Checking whether user can trade in the area selected in the KYC
+      // var geo_fencing_data = await module.exports.userTradeChecking(user_id);
+      // console.log(geo_fencing_data);
+      // if (geo_fencing_data.response == true) {
+      var qouteDetail = await module
+        .exports
+        .getQouteDetails(data);
+
+      console.log(qouteDetail)
+      return res
+        .status(200)
+        .json({
+          "status": 200,
+          "message": ("qoute details success"),
+          "data": qouteDetail
+        });
+
+      // } else {   // Whatever the response of user trade checking
+      //   res.json({
+      //     "status": 200,
+      //     "message": geo_fencing_data.msg
+      //   });
+      // }
+
+    } catch (err) {
+      console.log(err);
+      return res.json({ status: 500, "err": ("Something Wrong") });
+    }
+  }
 
   async userTradeChecking(user_id) {
     try {
