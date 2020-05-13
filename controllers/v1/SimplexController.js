@@ -42,10 +42,10 @@ class SimplexController extends AppController {
 
   async getKey(keyValue) {
 
-    var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
-    // // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    // // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
+    // var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    // var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
 
     // var key = JSON.parse(process.env.SECRET_KEY);
     // var iv = JSON.parse(process.env.SECRET_IV);
@@ -206,6 +206,42 @@ class SimplexController extends AppController {
     }
   }
 
+  async getWithoutUserQouteDetails(req, res) {
+    try {
+      var data = req.body;
+      // var ip = requestIp.getClientIp(req); var user_id = 1545; data.client_ip = ip;
+      // data.end_user_id = 1545;
+      // let user_id = 165486416541646541545446;
+
+      // Checking whether user can trade in the area selected in the KYC
+      // var geo_fencing_data = await module.exports.userTradeChecking(user_id);
+      // console.log(geo_fencing_data);
+      // if (geo_fencing_data.response == true) {
+      var qouteDetail = await module
+        .exports
+        .getQouteDetails(data);
+
+      console.log(qouteDetail)
+      return res
+        .status(200)
+        .json({
+          "status": 200,
+          "message": ("qoute details success"),
+          "data": qouteDetail
+        });
+
+      // } else {   // Whatever the response of user trade checking
+      //   res.json({
+      //     "status": 200,
+      //     "message": geo_fencing_data.msg
+      //   });
+      // }
+
+    } catch (err) {
+      console.log(err);
+      return res.json({ status: 500, "err": ("Something Wrong") });
+    }
+  }
 
   async userTradeChecking(user_id) {
     try {
@@ -442,6 +478,7 @@ class SimplexController extends AppController {
               "digital_total_amount[currency]": data.currency,
               "action": process.env.SIMPLEX_ACTION_URL
             }
+            console.log(dataObject)
             var now = new Date();
 
             let tradeHistory = await SimplexTradeHistory
