@@ -11,6 +11,7 @@ router.post('/api/v1/simplex/simplex-details', SimplexController.getUserQouteDet
 router.post('/api/v1/simplex/get-partner-data', SimplexController.getPartnerData);
 router.get('/api/v1/simplex/get-event-data', SimplexController.getCronEventData)
 router.get('/api/v1/simplex/delete-event-data/:event_id', SimplexController.cronDeleteEvent)
+router.post('/api/v1/simplex/withour-user-simplex-details', SimplexController.getWithoutUserQouteDetails)
 
 
 module.exports = router;
