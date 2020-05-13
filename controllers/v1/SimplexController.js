@@ -442,6 +442,7 @@ class SimplexController extends AppController {
               "digital_total_amount[currency]": data.currency,
               "action": process.env.SIMPLEX_ACTION_URL
             }
+            console.log(dataObject)
             var now = new Date();
 
             let tradeHistory = await SimplexTradeHistory
