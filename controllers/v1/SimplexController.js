@@ -371,12 +371,20 @@ class SimplexController extends AppController {
         .andWhere('slug', 'panic_status')
         .orderBy('id', 'DESC')
 
+      var userDetails = await UsersModel
+        .query()
+        .select()
+        .first()
+        .where("deleted_at", null)
+        .andWhere("is_active", true)
+        .andWhere("id", user_id);
+
       // Checking for if panic button in one or not
       if (panic_button_details.value == false || panic_button_details.value == "false") {
         // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
         console.log(geo_fencing_data);
-        if (geo_fencing_data.response == true) {
+        if (geo_fencing_data.response == true || userDetails.account_tier == 4) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
@@ -450,10 +458,18 @@ class SimplexController extends AppController {
         .andWhere('slug', 'panic_status')
         .orderBy('id', 'DESC')
 
+      var userDetails = await UsersModel
+        .query()
+        .select()
+        .first()
+        .where("deleted_at", null)
+        .andWhere("is_active", true)
+        .andWhere("id", user_id);
+
       if (panic_button_details.value == false || panic_button_details.value == "false") {
         // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
-        if (geo_fencing_data.response == true) {
+        if (geo_fencing_data.response == true || userDetails.account_tier == 4) {
 
           console.log(main_details)
 
