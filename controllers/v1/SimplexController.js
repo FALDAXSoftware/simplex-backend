@@ -175,7 +175,17 @@ class SimplexController extends AppController {
 
 
       data.client_ip = "203.88.135.122"
-      console.log("data", data)
+      console.log("data", data);
+      console.log(JSON.stringify({
+        "digital_currency": data.digital_currency,
+        "fiat_currency": data.fiat_currency,
+        "requested_currency": data.requested_currency,
+        "requested_amount": parseFloat(data.requested_amount),
+        "end_user_id": (data.end_user_id).toString(),
+        "wallet_id": decryptedWalletId,
+        "client_ip": (data.client_ip)
+      }));
+      console.log("process.env.SIMPLEX_URL", process.env.SIMPLEX_URL)
 
       var promise = await new Promise(async function (resolve, reject) {
         await request
@@ -195,7 +205,7 @@ class SimplexController extends AppController {
             })
           }, async function (err, res, body) {
             console.log(err)
-            console.log("BODY", res.body)
+            console.log("BODY", res)
             res = await res.toJSON();
             resolve(JSON.parse(res.body));
           });
@@ -363,6 +373,7 @@ class SimplexController extends AppController {
       // var ip = requestIp.getClientIp(req); var user_id = 1545; data.client_ip = ip;
       // data.end_user_id = 1545;
       let user_id = data.end_user_id;
+      console.log("user_id", user_id)
       var panic_button_details = await AdminSettings
         .query()
         .first()
@@ -379,12 +390,14 @@ class SimplexController extends AppController {
         .andWhere("is_active", true)
         .andWhere("id", user_id);
 
+      console.log("userDetails", userDetails)
+
       // Checking for if panic button in one or not
       if (panic_button_details.value == false || panic_button_details.value == "false") {
         // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
         console.log(geo_fencing_data);
-        if (geo_fencing_data.response == true || userDetails.account_tier == 4) {
+        if (geo_fencing_data.response == true || (userDetails != undefined && userDetails.account_tier == 4)) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
