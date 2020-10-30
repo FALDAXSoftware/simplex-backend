@@ -173,7 +173,6 @@ class SimplexController extends AppController {
         .exports
         .getKey(process.env.SIMPLEX_WALLET_ID)
 
-
       data.client_ip = "203.88.135.122"
       console.log("data", data);
       console.log(JSON.stringify({
@@ -447,6 +446,28 @@ class SimplexController extends AppController {
           .status(500)
           .json({ "status": 500, "message": ("panic button enabled") })
       }
+
+    } catch (err) {
+      console.log(err);
+      return res.json({ status: 500, "err": ("Something Wrong") });
+    }
+  }
+
+  async getWithoutUserQouteDetails(req, res) {
+    try {
+      var data = req.body;
+      var qouteDetail = await module
+        .exports
+        .getQouteDetails(data);
+
+      console.log(qouteDetail)
+      return res
+        .status(200)
+        .json({
+          "status": 200,
+          "message": ("qoute details success"),
+          "data": qouteDetail
+        });
 
     } catch (err) {
       console.log(err);
