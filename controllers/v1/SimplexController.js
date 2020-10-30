@@ -42,13 +42,13 @@ class SimplexController extends AppController {
 
   async getKey(keyValue) {
 
-    var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
+    // var key = [63, 17, 35, 31, 99, 50, 42, 86, 89, 80, 47, 14, 12, 98, 44, 78]
     // var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     // var iv = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
+    // var iv = [45, 56, 89, 10, 98, 54, 13, 27, 82, 61, 53, 86, 67, 96, 94, 51]
 
-    // var key = JSON.parse(process.env.SECRET_KEY);
-    // var iv = JSON.parse(process.env.SECRET_IV);
+    var key = JSON.parse(process.env.SECRET_KEY);
+    var iv = JSON.parse(process.env.SECRET_IV);
     // var key = process.env.SECRET_KEY;
     // var iv = process.env.SECRET_IV;
 
@@ -174,7 +174,8 @@ class SimplexController extends AppController {
         .getKey(process.env.SIMPLEX_WALLET_ID)
 
       data.client_ip = "203.88.135.122"
-      var alldata = JSON.stringify({
+      console.log("data", data);
+      console.log(JSON.stringify({
         "digital_currency": data.digital_currency,
         "fiat_currency": data.fiat_currency,
         "requested_currency": data.requested_currency,
@@ -182,9 +183,9 @@ class SimplexController extends AppController {
         "end_user_id": (data.end_user_id).toString(),
         "wallet_id": decryptedWalletId,
         "client_ip": (data.client_ip)
-      })
-      //await logger.info({ "module": "Simplex", "user_id": "simplex_user", "body": alldata, "type": "Success" }, "Success");
-      console.log("SIMPLEX ALL REQUEST DATA=>", alldata);
+      }));
+      console.log("process.env.SIMPLEX_URL", process.env.SIMPLEX_URL)
+
       var promise = await new Promise(async function (resolve, reject) {
         await request
           .post(process.env.SIMPLEX_URL + 'quote', {
@@ -203,7 +204,7 @@ class SimplexController extends AppController {
             })
           }, async function (err, res, body) {
             console.log(err)
-            console.log("BODY", res.body)
+            console.log("BODY", res)
             res = await res.toJSON();
             resolve(JSON.parse(res.body));
           });
@@ -371,6 +372,7 @@ class SimplexController extends AppController {
       // var ip = requestIp.getClientIp(req); var user_id = 1545; data.client_ip = ip;
       // data.end_user_id = 1545;
       let user_id = data.end_user_id;
+      console.log("user_id", user_id)
       var panic_button_details = await AdminSettings
         .query()
         .first()
@@ -387,12 +389,14 @@ class SimplexController extends AppController {
         .andWhere("is_active", true)
         .andWhere("id", user_id);
 
+      console.log("userDetails", userDetails)
+
       // Checking for if panic button in one or not
       if (panic_button_details.value == false || panic_button_details.value == "false") {
         // Checking whether user can trade in the area selected in the KYC
         var geo_fencing_data = await module.exports.userTradeChecking(user_id);
         console.log(geo_fencing_data);
-        if (geo_fencing_data.response == true || userDetails.account_tier == 4) {
+        if (geo_fencing_data.response == true || (userDetails != undefined && userDetails.account_tier == 4)) {
           var qouteDetail = await module
             .exports
             .getQouteDetails(data);
